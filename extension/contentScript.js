@@ -30,8 +30,6 @@ function injectCommentAssistantButton() {
   console.log(`Found ${commentSections.length} potential comment sections`);
   
   commentSections.forEach(section => {
-    // Create a unique identifier for this section
-    const sectionId = generateUniqueId(section);
     
     // Check if we already added a button to this section using a data attribute
     if (section.hasAttribute('data-assistant-button-added')) {
@@ -99,15 +97,6 @@ function injectCommentAssistantButton() {
   });
 }
 
-// Generate a unique identifier for a DOM element
-function generateUniqueId(element) {
-  // Create a simple hash based on element properties
-  const rect = element.getBoundingClientRect();
-  const position = `${rect.top.toFixed(0)}-${rect.left.toFixed(0)}-${rect.width.toFixed(0)}-${rect.height.toFixed(0)}`;
-  const classes = Array.from(element.classList).join('-');
-  return `${position}-${classes}`;
-}
-
 // Create and show the dropdown UI
 function showCommentAssistantDropdown(buttonElement, commentSection) {
   // Remove any existing dropdown
@@ -136,7 +125,7 @@ function showCommentAssistantDropdown(buttonElement, commentSection) {
   `;
   
   // Create dropdown content
-  dropdown.innerHTML = `
+  dropdown.innerHTML =  `
     <div style="font-weight: 600; margin-bottom: 8px; color: #000000;">Generate AI Comment</div>
     <div style="margin-bottom: 12px;">
       <label style="display: block; margin-bottom: 4px; color: #666;">Comment Style:</label>
