@@ -30,6 +30,8 @@ function injectCommentAssistantButton() {
   console.log(`Found ${commentSections.length} potential comment sections`);
   
   commentSections.forEach(section => {
+    // Create a unique identifier for this section
+    const sectionId = generateUniqueId(section);
     
     // Check if we already added a button to this section using a data attribute
     if (section.hasAttribute('data-assistant-button-added')) {
@@ -54,28 +56,47 @@ function injectCommentAssistantButton() {
       }
       
       console.log('Found actions area for comment section:', actionsArea);
+      
+      // Find the post content for this specific comment section
+      let postContent = "";
+      try {
+        // Find the parent post container
+        const postContainer = section.closest('.feed-shared-update-v2, .feed-shared-update, .occludable-update, .update-components-actor');
+        
+        if (postContainer) {
+          // Try multiple selectors to find the post content within this specific container
+          const postElement = 
+            postContainer.querySelector('.feed-shared-update-v2__description .update-components-text') ||
+            postContainer.querySelector('.update-components-text') ||
+            postContainer.querySelector('.feed-shared-text') ||
+            postContainer.querySelector('.feed-shared-inline-show-more-text');
+          
+          if (postElement && postElement.textContent.trim()) {
+            postContent = postElement.textContent.trim()
+              .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+              .replace(/[\n\r]+/g, ' '); // Replace newlines with space
+            
+            // Limit content length if too long
+            const maxLength = 500;
+            postContent = postContent.length > maxLength 
+              ? postContent.substring(0, maxLength) + '...'
+              : postContent;
+            
+            console.log(`Found post content for section ${sectionId}: "${postContent.substring(0, 50)}..."`);
+          }
+        }
+      } catch (error) {
+        console.error('Error finding post content:', error);
+      }
+      
       // Create our button
       const assistantButton = document.createElement('button');
       assistantButton.className = 'linkedin-comment-assistant-btn';
       assistantButton.innerHTML = '✨ AI';
       assistantButton.title = 'Generate AI Comment';
       
-      // Style the button to match LinkedIn's UI
-      assistantButton.style.cssText = `
-        background: none;
-        border: none;
-        color: #0a66c2;
-        font-weight: 600;
-        margin-right: 4px;
-        cursor: pointer;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 14px;
-        display: inline;
-        vertical-align: baseline;
-        line-height: normal;
-        float: left;
-      `;
+      // Store the post content as a data attribute on the button
+      assistantButton.setAttribute('data-post-content', postContent);
       
       // Add click handler to show the dropdown
       assistantButton.addEventListener('click', (event) => {
@@ -97,6 +118,15 @@ function injectCommentAssistantButton() {
   });
 }
 
+// Generate a unique identifier for a DOM element
+function generateUniqueId(element) {
+  // Create a simple hash based on element properties
+  const rect = element.getBoundingClientRect();
+  const position = `${rect.top.toFixed(0)}-${rect.left.toFixed(0)}-${rect.width.toFixed(0)}-${rect.height.toFixed(0)}`;
+  const classes = Array.from(element.classList).join('-');
+  return `${position}-${classes}`;
+}
+
 // Create and show the dropdown UI
 function showCommentAssistantDropdown(buttonElement, commentSection) {
   // Remove any existing dropdown
@@ -111,21 +141,11 @@ function showCommentAssistantDropdown(buttonElement, commentSection) {
   
   // Position the dropdown near the button
   const buttonRect = buttonElement.getBoundingClientRect();
-  dropdown.style.cssText = `
-    position: absolute;
-    top: ${buttonRect.bottom + window.scrollY}px;
-    left: ${buttonRect.left + window.scrollX}px;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 12px;
-    z-index: 9999;
-    width: 250px;
-  `;
+  dropdown.style.top = `${buttonRect.bottom + window.scrollY}px`;
+  dropdown.style.left = `${buttonRect.left + window.scrollX}px`;
   
   // Create dropdown content
-  dropdown.innerHTML =  `
+  dropdown.innerHTML = `
     <div style="font-weight: 600; margin-bottom: 8px; color: #000000;">Generate AI Comment</div>
     <div style="margin-bottom: 12px;">
       <label style="display: block; margin-bottom: 4px; color: #666;">Comment Style:</label>
@@ -171,10 +191,10 @@ function showCommentAssistantDropdown(buttonElement, commentSection) {
     const styleSelect = document.getElementById('comment-style-dropdown');
     const selectedStyle = styleSelect.value;
     
-    // Get post content
-    const postContent = extractPostContent();
+    // Get post content from the button's data attribute
+    const postContent = buttonElement.getAttribute('data-post-content');
     
-    if (!postContent || postContent.startsWith("No post content found") || postContent.startsWith("Error")) {
+    if (!postContent || postContent === "") {
       statusElement.textContent = "Error: Could not get post content";
       spinnerElement.classList.add('hidden');
       generateButton.disabled = false;
@@ -228,64 +248,87 @@ function showCommentAssistantDropdown(buttonElement, commentSection) {
 // Function to find and fill the LinkedIn comment field
 function fillCommentField(text) {
   try {
-    console.log('Attempting to fill comment field with:', text);
-    // LinkedIn frequently updates its DOM structure
-    // Here are several possible selectors for comment fields
-    const possibleSelectors = [
-      'div[role="textbox"][contenteditable="true"]', // Modern LinkedIn comment box
-      '.comments-comment-box__content[contenteditable="true"]', // Another common comment box
-      '.ql-editor[contenteditable="true"]', // Editor used in some LinkedIn areas
-      'p[data-placeholder]', // Comment fields with placeholders
-      '.editor-content[contenteditable="true"]' // Older LinkedIn editor
-    ];
+    console.log('[Extension] Attempting to fill comment field with:', text);
     
-    // Try each selector until we find a match
-    let commentField = null;
-    for (const selector of possibleSelectors) {
-      const elements = document.querySelectorAll(selector);
-      console.log(`Found ${elements.length} elements for selector: ${selector}`);
+    // First try to get the currently focused comment field
+    let commentField = document.activeElement;
+    
+    // Check if the active element is actually a comment field
+    if (!commentField || 
+        !(commentField.getAttribute('role') === 'textbox' && commentField.getAttribute('contenteditable') === 'true') &&
+        !(commentField.classList.contains('ql-editor') && commentField.getAttribute('contenteditable') === 'true')) {
       
-      // Look for a visible and focused comment field first
-      for (const element of elements) {
-        if (element.offsetParent !== null && 
-            (document.activeElement === element || 
-             element.contains(document.activeElement))) {
-          commentField = element;
-          break;
+      console.log('[Extension] Active element is not a comment field, searching for visible comment fields');
+      
+      // Find all potential comment fields
+      const commentFields = document.querySelectorAll('div[role="textbox"][contenteditable="true"], .ql-editor[contenteditable="true"]');
+      
+      // Try to find the most relevant comment field (visible and near the dropdown)
+      const dropdown = document.querySelector('.linkedin-comment-assistant-dropdown');
+      
+      if (dropdown && commentFields.length > 0) {
+        const dropdownRect = dropdown.getBoundingClientRect();
+        
+        // Find the closest visible comment field to our dropdown
+        let closestDistance = Infinity;
+        let closestField = null;
+        
+        commentFields.forEach(field => {
+          const fieldRect = field.getBoundingClientRect();
+          
+          // Check if the field is visible
+          if (fieldRect.height > 0 && fieldRect.width > 0) {
+            // Calculate distance between field and dropdown
+            const distance = Math.sqrt(
+              Math.pow(dropdownRect.left - fieldRect.left, 2) + 
+              Math.pow(dropdownRect.top - fieldRect.top, 2)
+            );
+            
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestField = field;
+            }
+          }
+        });
+        
+        if (closestField) {
+          commentField = closestField;
+          console.log('[Extension] Found closest visible comment field to dropdown');
         }
       }
       
-      // If no focused field found, take any visible one
+      // If we still don't have a comment field, just take the first visible one
       if (!commentField) {
-        for (const element of elements) {
-          if (element.offsetParent !== null) {
-            commentField = element;
+        for (const field of commentFields) {
+          const rect = field.getBoundingClientRect();
+          if (rect.height > 0 && rect.width > 0 && 
+              rect.top >= 0 && rect.bottom <= window.innerHeight) {
+            commentField = field;
+            console.log('[Extension] Using first visible comment field');
             break;
           }
         }
       }
       
-      if (commentField) break;
+      // Last resort - just take the first one
+      if (!commentField && commentFields.length > 0) {
+        commentField = commentFields[0];
+        console.log('[Extension] Using first available comment field as fallback');
+      }
     }
     
     if (!commentField) {
-      console.warn('No comment field found');
+      console.warn('[Extension] No comment field found');
       return {success: false, error: "No comment field found. Click on a comment box first."};
     }
     
-    console.log('Successfully found comment field:', commentField);
-    // Clear existing content and set new text
-    // Some LinkedIn editors require specific handling
-    if (commentField.classList.contains('ql-editor')) {
-      // Quill editor handling
-      commentField.innerHTML = ''; // Clear existing content
-      const paragraph = document.createElement('p');
-      paragraph.textContent = text;
-      commentField.appendChild(paragraph);
-    } else {
-      // Standard contenteditable handling
-      commentField.textContent = text;
-    }
+    console.log('[Extension] Successfully found comment field');
+    
+    // Focus the field first
+    commentField.focus();
+    
+    // Set the content
+    commentField.textContent = text;
     
     // Trigger input event to ensure LinkedIn registers the change
     const inputEvent = new Event('input', {
@@ -294,22 +337,10 @@ function fillCommentField(text) {
     });
     commentField.dispatchEvent(inputEvent);
     
-    // Focus the field
-    commentField.focus();
-    
-    // Set cursor at the end
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(commentField);
-    range.collapse(false); // false means collapse to end
-    selection.removeAllRanges();
-    selection.addRange(range);
-    
     return {success: true};
     
   } catch (error) {
-    console.error("LinkedIn Comment Assistant Error:", error);
-    console.error("Stack trace:", error.stack);  // Add stack trace
+    console.error("[Extension] LinkedIn Comment Assistant Error:", error);
     return {success: false, error: error.toString()};
   }
 }
@@ -317,71 +348,120 @@ function fillCommentField(text) {
 // Function to extract post content from LinkedIn post
 function extractPostContent() {
   try {
-    console.log('Attempting to extract post content');
-    // LinkedIn frequently updates its DOM structure
-    // Here are several possible selectors for post content
-    const possibleSelectors = [
-      'div[data-id="feed-detail-content"]', // Modern feed post content
-      'div.feed-shared-update-v2__description-wrapper', // Feed post description
-      'div.feed-shared-text', // Shared post text
-      'article div.update-components-text', // Article text
-      'div.post-body' // Generic post body
-    ];
+    console.log('[Extension] Attempting to extract post content');
     
-    // Try each selector until we find a match
-    let postContent = null;
-    for (const selector of possibleSelectors) {
-      const element = document.querySelector(selector);
-      if (element && element.offsetParent !== null) {
-        postContent = element.textContent.trim();
-        if (postContent) break;
+    // Find the closest post to the active comment field
+    const activeCommentField = document.activeElement;
+    let postElement = null;
+    
+    if (activeCommentField && 
+        (activeCommentField.getAttribute('role') === 'textbox' || 
+         activeCommentField.getAttribute('contenteditable') === 'true')) {
+      // Try to find the post container by traversing up from the active comment field
+      // Look for the feed item container that contains this comment field
+      const postContainer = activeCommentField.closest('.feed-shared-update-v2, .feed-shared-update, .update-components-actor');
+      
+      if (postContainer) {
+        // Try multiple selectors to find the post content within this specific container
+        postElement = 
+          postContainer.querySelector('.feed-shared-update-v2__description .update-components-text') ||
+          postContainer.querySelector('.update-components-text') ||
+          postContainer.querySelector('.feed-shared-text') ||
+          postContainer.querySelector('.feed-shared-inline-show-more-text');
+        
+        console.log('[Extension] Found post container:', postContainer);
+        console.log('[Extension] Found post element within container:', postElement);
       }
     }
     
-    // If no content found through main selectors, try to find any visible post content
-    if (!postContent) {
-      // Look for comment box to identify the post container
-      const commentBox = document.querySelector('div[role="textbox"][contenteditable="true"]');
-      if (commentBox) {
-        // Navigate up to find the post container
-        let postContainer = commentBox.closest('article') || 
-                          commentBox.closest('.feed-shared-update-v2') ||
-                          commentBox.closest('.feed-shared-post');
+    // If we couldn't find the post from the active comment field, try another approach
+    if (!postElement || !postElement.textContent.trim()) {
+      console.log('[Extension] Could not find post from active comment field, trying alternative approach');
+      
+      // Try to find the comment section that contains the active element
+      const commentSection = activeCommentField?.closest('.comments-comment-item, .comments-comments-list, .social-details-social-activity');
+      
+      if (commentSection) {
+        // Find the parent post of this comment section
+        const parentPost = commentSection.closest('.feed-shared-update-v2, .feed-shared-update, .occludable-update');
         
-        if (postContainer) {
-          // Get the first substantial text content from the post container
-          const textNodes = Array.from(postContainer.querySelectorAll('*'))
-            .filter(el => el.textContent.trim().length > 20 && 
-                         !el.querySelector('input, textarea, [contenteditable="true"]'));
+        if (parentPost) {
+          postElement = 
+            parentPost.querySelector('.feed-shared-update-v2__description .update-components-text') ||
+            parentPost.querySelector('.update-components-text') ||
+            parentPost.querySelector('.feed-shared-text');
           
-          if (textNodes.length > 0) {
-            postContent = textNodes[0].textContent.trim();
-          }
+          console.log('[Extension] Found parent post from comment section:', parentPost);
         }
       }
     }
     
-    if (!postContent) {
-      return "No post content found. Please make sure you're on a LinkedIn post.";
+    // If we still couldn't find the post, fall back to the default approach
+    if (!postElement || !postElement.textContent.trim()) {
+      console.log('[Extension] Falling back to default approach');
+      // Look for any visible post that might be in view
+      const visiblePosts = Array.from(document.querySelectorAll('.feed-shared-update-v2')).filter(post => {
+        const rect = post.getBoundingClientRect();
+        return rect.top >= 0 && rect.bottom <= window.innerHeight;
+      });
+      
+      if (visiblePosts.length > 0) {
+        // Use the most visible post
+        const mostVisiblePost = visiblePosts[0];
+        postElement = mostVisiblePost.querySelector('.feed-shared-update-v2__description .update-components-text');
+      } else {
+        // Last resort - just get the first post
+        postElement = document.querySelector('.feed-shared-update-v2__description .update-components-text');
+      }
     }
     
-    // Clean up the content
-    postContent = postContent
-      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-      .replace(/[\n\r]+/g, ' ') // Replace newlines with space
-      .trim();
-    
-    // Limit content length if too long
-    const maxLength = 500;
-    if (postContent.length > maxLength) {
-      postContent = postContent.substring(0, maxLength) + '...';
+    // Process the found post content
+    if (postElement && postElement.textContent.trim()) {
+      const postContent = postElement.textContent.trim();
+      console.log(`[Extension] Found post content: "${postContent.substring(0, 100)}${postContent.length > 100 ? '...' : ''}"`);
+      
+      // Clean up the content
+      const cleanedContent = postContent
+        .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+        .replace(/[\n\r]+/g, ' ') // Replace newlines with space
+        .trim();
+      
+      // Limit content length if too long
+      const maxLength = 500;
+      const finalContent = cleanedContent.length > maxLength 
+        ? cleanedContent.substring(0, maxLength) + '...'
+        : cleanedContent;
+      
+      console.log('[Extension] Final extracted post content:', finalContent);
+      return finalContent;
     }
     
-    return postContent;
+    // Fallback if primary selector fails
+    console.log('[Extension] Primary selector failed, trying fallbacks');
+    
+    const fallbackSelectors = [
+      '.update-components-text span[dir="rtl"]',
+      '.feed-shared-inline-show-more-text .update-components-text',
+      '.feed-shared-update-v2__description .break-words'
+    ];
+    
+    for (const selector of fallbackSelectors) {
+      const element = document.querySelector(selector);
+      if (element && element.textContent.trim()) {
+        const content = element.textContent.trim()
+          .replace(/\s+/g, ' ')
+          .replace(/[\n\r]+/g, ' ');
+        
+        console.log(`[Extension] Found content with fallback selector "${selector}"`);
+        return content.length > 500 ? content.substring(0, 500) + '...' : content;
+      }
+    }
+    
+    console.log('[Extension] No post content found');
+    return "No post content found. Please make sure you're on a LinkedIn post.";
     
   } catch (error) {
-    console.error("LinkedIn Comment Assistant Error:", error);
-    console.error("Stack trace:", error.stack);  // Add stack trace
+    console.error("[Extension] LinkedIn Comment Assistant Error:", error);
     return "Error extracting post content: " + error.toString();
   }
 }
@@ -447,15 +527,105 @@ function setupCommentSectionObserver() {
   lastInjectionTime = Date.now();
 }
 
+// Add click listeners to LinkedIn's comment buttons to trigger our button injection
+function setupCommentButtonListeners() {
+  console.log('Setting up comment button listeners');
+  
+  // Find all LinkedIn comment buttons
+  const commentButtons = document.querySelectorAll(
+    'button.social-actions__comment, ' +
+    'button[aria-label*="comment"], ' +
+    'button[data-control-name="comment"]'
+  );
+  
+  // Limit the number of buttons we process to avoid performance issues
+  const MAX_BUTTONS = 20;
+  let processedCount = 0;
+  
+  console.log(`Found ${commentButtons.length} LinkedIn comment buttons, processing up to ${MAX_BUTTONS}`);
+  
+  for (const button of commentButtons) {
+    // Check if we already added a listener to this button
+    if (!button.hasAttribute('data-assistant-listener-added')) {
+      button.setAttribute('data-assistant-listener-added', 'true');
+      
+      button.addEventListener('click', () => {
+        console.log('LinkedIn comment button clicked, injecting assistant button');
+        // Wait a short moment for the comment box to appear
+        setTimeout(() => {
+          injectCommentAssistantButton();
+        }, 300);
+      });
+      
+      processedCount++;
+      if (processedCount >= MAX_BUTTONS) {
+        console.log(`Reached maximum of ${MAX_BUTTONS} buttons, stopping processing`);
+        break;
+      }
+    }
+  }
+  
+  console.log(`Added click listeners to ${processedCount} new comment buttons`);
+}
+
+// Function to periodically check for new comment buttons
+function setupCommentButtonObserver() {
+  // Keep track of the last time we checked for buttons
+  let lastCheckTime = 0;
+  const CHECK_COOLDOWN = 2000; // 2 second cooldown
+  
+  // Create a MutationObserver to watch for new comment buttons
+  const observer = new MutationObserver((mutations) => {
+    // Check if we're within the cooldown period
+    const now = Date.now();
+    if (now - lastCheckTime < CHECK_COOLDOWN) {
+      return;
+    }
+    
+    // Check if any mutations contain potential comment buttons
+    let shouldCheck = false;
+    for (const mutation of mutations) {
+      if (mutation.addedNodes.length) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            // Check if this node or its children might contain comment buttons
+            if (node.querySelector('button') || node.tagName === 'BUTTON') {
+              shouldCheck = true;
+              break;
+            }
+          }
+        }
+        if (shouldCheck) break;
+      }
+    }
+    
+    if (shouldCheck) {
+      setupCommentButtonListeners();
+      lastCheckTime = now;
+    }
+  });
+  
+  // Start observing the document for new buttons
+  observer.observe(document.body, { childList: true, subtree: true });
+  
+  // Also set up listeners for any existing buttons
+  setupCommentButtonListeners();
+  lastCheckTime = Date.now();
+}
+
 // Initialize when the page is fully loaded
 window.addEventListener('load', () => {
-  console.log('Page loaded, setting up LinkedIn Comment Assistant');
+  console.log('[Extension] LinkedIn Comment Assistant ready');
+  // Try to extract post content immediately
+  extractPostContent();
+  // Set up observers for comment sections and buttons
   setupCommentSectionObserver();
+  setupCommentButtonObserver();
 });
 
-// Also try to inject buttons immediately in case the page is already loaded
-console.log('Attempting initial button injection');
-injectCommentAssistantButton();
+// Also try to extract post content immediately in case the page is already loaded
+console.log('[Extension] Attempting initial post content extraction');
+extractPostContent();
 
 // Add a periodic check to catch any missed comment sections, but with a longer interval
 // and only if no buttons exist yet
@@ -489,6 +659,8 @@ function startPeriodicCheck() {
       // Try to inject buttons
       console.log(`Periodic check ${checkCount}/${MAX_CHECKS} - attempting to inject buttons`);
       injectCommentAssistantButton();
+      // Also check for comment buttons
+      setupCommentButtonListeners();
     }
   }, 3000);
 }

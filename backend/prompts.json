@@ -1,0 +1,13 @@
+{
+  "system": {
+    "default": "You are a helpful assistant that writes engaging LinkedIn comments."
+  },
+  "styles": {
+    "professional": "Write a professional and insightful comment for this LinkedIn post. The comment should be thoughtful, business-appropriate, and demonstrate expertise without being overly formal. Keep it under 3 sentences.",
+    "casual": "Write a friendly, conversational comment for this LinkedIn post. The tone should be warm and approachable, as if talking to a colleague you know well. Keep it under 3 sentences.",
+    "enthusiastic": "Write an enthusiastic and supportive comment for this LinkedIn post. The comment should be energetic, positive, and encouraging. Keep it under 3 sentences.",
+    "thoughtful": "Write a thoughtful, reflective comment for this LinkedIn post that adds value to the conversation. The comment should demonstrate careful consideration of the topic and possibly add a new perspective. Keep it under 3 sentences.",
+    "concise": "Write a brief, to-the-point comment for this LinkedIn post. The comment should be direct and efficient while still being engaging. Keep it to 1-2 short sentences.",
+    "default": "Write a professional comment for this LinkedIn post. Keep it under 3 sentences."
+  }
+}
