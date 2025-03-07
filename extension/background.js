@@ -1,6 +1,6 @@
 // Store backend URL
 // const BACKEND_URL = "http://localhost:5000"; // Change to your production URL when deployed
-const BACKEND_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com/"
+const BACKEND_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com"
 
 // Listen for messages from popup and content script
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {

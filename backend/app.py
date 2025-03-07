@@ -11,7 +11,7 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 # Enable CORS for Chrome extension
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "chrome-extension://abnddajgafcgppkhammeldmebbldphch"}})
 
 # Export the app instance
 from auth_routes import *
