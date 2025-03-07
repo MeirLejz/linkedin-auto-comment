@@ -10,8 +10,12 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-# Enable CORS for Chrome extension
-CORS(app, resources={r"/*": {"origins": "chrome-extension://abnddajgafcgppkhammeldmebbldphch"}})
+# Enable CORS for Chrome extension - updated configuration
+CORS(app, 
+     origins=["chrome-extension://abnddajgafcgppkhammeldmebbldphch"],
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "OPTIONS"],
+     supports_credentials=True)
 
 # Export the app instance
 from auth_routes import *
@@ -71,6 +75,14 @@ def get_prompt_for_style(style, post_content):
     prompt_template = PROMPTS.get(style, PROMPTS.get("default"))
     
     return f"{prompt_template}\n\n{base_prompt}"
+
+@app.route('/generate-comment', methods=['OPTIONS'])
+def handle_options():
+    response = jsonify({})
+    response.headers.add('Access-Control-Allow-Origin', 'chrome-extension://abnddajgafcgppkhammeldmebbldphch')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True)
