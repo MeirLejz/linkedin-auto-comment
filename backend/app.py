@@ -1,24 +1,17 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from openai import OpenAI
 import os
 import json
-from dotenv import load_dotenv
+from openai import OpenAI
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Initialize Flask app
 app = Flask(__name__)
-# Enable CORS for Chrome extension - updated configuration
+
+# Configure CORS globally
 CORS(app, 
      origins=["chrome-extension://abnddajgafcgppkhammeldmebbldphch"],
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "OPTIONS"],
      supports_credentials=True)
-
-# Export the app instance
-from auth_routes import *
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -48,7 +41,7 @@ def generate_comment():
         # Get system prompt
         system_prompt = PROMPTS["system"].get("default")
         
-        # Call OpenAI API with new client syntax
+        # Call OpenAI API
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -59,7 +52,7 @@ def generate_comment():
             temperature=0.7
         )
         
-        # Extract and return the generated comment using new response structure
+        # Extract and return the generated comment
         comment = response.choices[0].message.content.strip()
         return jsonify({"comment": comment})
         
@@ -70,19 +63,5 @@ def generate_comment():
 def get_prompt_for_style(style, post_content):
     """Helper function to get the appropriate prompt based on style"""
     base_prompt = f'Post content: "{post_content}"'
-    
-    # Get prompt from loaded prompts or use default
     prompt_template = PROMPTS.get(style, PROMPTS.get("default"))
-    
     return f"{prompt_template}\n\n{base_prompt}"
-
-@app.route('/generate-comment', methods=['OPTIONS'])
-def handle_options():
-    response = jsonify({})
-    response.headers.add('Access-Control-Allow-Origin', 'chrome-extension://abnddajgafcgppkhammeldmebbldphch')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-    return response
-
-if __name__ == '__main__':
-    app.run(debug=True)
