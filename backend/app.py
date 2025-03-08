@@ -7,7 +7,7 @@ from openai import OpenAI
 app = Flask(__name__)
 
 # Configure CORS globally
-CORS(app, origins="*")
+CORS(app, origins="*", supports_credentials=True)
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
