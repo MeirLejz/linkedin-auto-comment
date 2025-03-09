@@ -4,12 +4,7 @@
     "version": "1.0",
     "description": "Generate and pre-fill LinkedIn comments using ChatGPT",
     "permissions": [
-      "activeTab",
-      "scripting",
-      "storage"
-    ],
-    "host_permissions": [
-      "https://api.openai.com/*"
+      "activeTab"
     ],
     "background": {
       "service_worker": "background.js"
