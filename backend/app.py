@@ -14,7 +14,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Load prompts from JSON file
 def load_prompts():
-    with open('backend/prompts.json', 'r') as file:
+    with open('prompts.json', 'r') as file:
         return json.load(file)
 
 # Global prompts variable
