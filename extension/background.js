@@ -1,6 +1,13 @@
-// Store backend URL
-// const BACKEND_URL = "http://localhost:5000"; // Change to your production URL when deployed
-const BACKEND_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com/"
+// Backend URL Configuration
+const DEV_URL = "http://localhost:5000";
+const PROD_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com/";
+
+// Set to true for development, false for production
+const IS_DEVELOPMENT = false;
+
+const BACKEND_URL = IS_DEVELOPMENT ? DEV_URL : PROD_URL;
+
+console.log(`Using backend URL: ${BACKEND_URL} (${IS_DEVELOPMENT ? 'Development' : 'Production'} mode)`);
 
 // Listen for messages from popup and content script
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
