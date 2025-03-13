@@ -3,9 +3,7 @@
     "name": "LinkedIn Comment Assistant",
     "version": "1.0",
     "description": "Generate and pre-fill LinkedIn comments using ChatGPT",
-    "permissions": [
-      "activeTab"
-    ],
+    "permissions": [],
     "background": {
       "service_worker": "background.js"
     },
