@@ -3,7 +3,7 @@ const DEV_URL = "http://localhost:5000";
 const PROD_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com/";
 
 // Set to true for development, false for production
-const IS_DEVELOPMENT = false;
+const IS_DEVELOPMENT = true;
 
 const BACKEND_URL = IS_DEVELOPMENT ? DEV_URL : PROD_URL;
 
@@ -16,12 +16,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   // Handle comment generation
   if (request.action === "generateComment") {
     console.log("Generate comment request received:", {
-      postContentLength: request.postContent?.length,
-      style: request.style
+      postContentLength: request.postContent?.length
     });
     
     console.log("Calling backend to generate comment...");
-    generateComment(request.postContent, request.style)
+    generateComment(request.postContent)
       .then(comment => {
         console.log("Comment generated successfully:", comment.substring(0, 30) + "...");
         sendResponse({success: true, comment: comment});
@@ -39,8 +38,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 // Function to generate a comment using backend API
-async function generateComment(postContent, style) {
-  console.log("generateComment called with style:", style);
+async function generateComment(postContent) {
+  console.log("generateComment called");
   try {
     console.log("Sending request to backend API...");
     // Call backend API
@@ -51,7 +50,6 @@ async function generateComment(postContent, style) {
       },
       body: JSON.stringify({
         post_content: postContent,
-        style: style
       })
     });
     

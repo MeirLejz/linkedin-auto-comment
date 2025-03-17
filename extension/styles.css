@@ -15,12 +15,28 @@
   color: #0a66c2;
   font-weight: 600;
   margin-right: 4px;
+  margin-left: 8px;  /* Added left margin */
+  padding: 4px 4px 4px 4px;  /* Added more padding on the left */
   cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 50%;
   font-size: 14px;
-  display: inline;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   vertical-align: baseline;
   line-height: normal;
   float: left;
+  transition: background-color 0.2s ease;
+}
+
+.linkedin-comment-assistant-btn:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.linkedin-comment-assistant-btn:active {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.linkedin-comment-assistant-btn img {
+  display: block;
 }

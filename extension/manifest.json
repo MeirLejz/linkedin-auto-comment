@@ -22,5 +22,11 @@
         "matches": ["*://*.linkedin.com/*"],
         "js": ["contentScript.js"]
       }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["icon.png"],
+        "matches": ["*://*.linkedin.com/*"]
+      }
     ]
 }

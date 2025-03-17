@@ -19,17 +19,24 @@ chrome.runtime.onMessage.addListener(
 
 // Inject the comment assistant button into LinkedIn's UI
 function injectCommentAssistantButton() {
-  // Look for comment sections with expanded selectors
+  // Look for comment sections with expanded selectors, but exclude reply boxes
   const commentSections = document.querySelectorAll(
-    '.comments-comment-box, .comments-comment-texteditor, ' + 
-    'div[data-test-id="comments-comment-box"], ' +
-    'div[role="textbox"][contenteditable="true"], ' +
-    '.ql-editor[contenteditable="true"]'
+    '.comments-comment-box:not(.comments-comment-box--reply), ' + 
+    '.comments-comment-texteditor:not(.comments-comment-box--reply), ' + 
+    'div[data-test-id="comments-comment-box"]:not(.comments-comment-box--reply), ' +
+    'div[role="textbox"][contenteditable="true"]:not(.ql-editor), ' +
+    '.ql-editor[contenteditable="true"]:not(.comments-comment-box--reply)'
   );
   
-  console.log(`Found ${commentSections.length} potential comment sections`);
+  console.log(`Found ${commentSections.length} potential main comment sections`);
   
   commentSections.forEach(section => {
+    // Skip if this is a reply box (additional check)
+    if (section.closest('.comments-comment-box--reply') || 
+        section.parentElement?.closest('.comments-comment-box--reply')) {
+      return;
+    }
+    
     // Create a unique identifier for this section
     const sectionId = generateUniqueId(section);
     
@@ -92,7 +99,8 @@ function injectCommentAssistantButton() {
       // Create our button
       const assistantButton = document.createElement('button');
       assistantButton.className = 'linkedin-comment-assistant-btn';
-      assistantButton.innerHTML = '✨ AI';
+      // Use the icon image instead of text
+      assistantButton.innerHTML = '<img src="' + chrome.runtime.getURL('icon.png') + '" alt="AI" width="20" height="20">';
       assistantButton.title = 'Generate AI Comment';
       
       // Store the post content as a data attribute on the button
@@ -102,7 +110,7 @@ function injectCommentAssistantButton() {
       assistantButton.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
-        showCommentAssistantDropdown(event.target, section);
+        showCommentAssistantDropdown(event.currentTarget, section);
       });
       
       // Insert the button before the comment button
@@ -147,20 +155,10 @@ function showCommentAssistantDropdown(buttonElement, commentSection) {
   // Create dropdown content
   dropdown.innerHTML = `
     <div style="font-weight: 600; margin-bottom: 8px; color: #000000;">Generate AI Comment</div>
-    <div style="margin-bottom: 12px;">
-      <label style="display: block; margin-bottom: 4px; color: #666;">Comment Style:</label>
-      <select id="comment-style-dropdown" style="width: 100%; padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px;">
-        <option value="professional">Professional</option>
-        <option value="casual">Casual</option>
-        <option value="enthusiastic">Enthusiastic</option>
-        <option value="thoughtful">Thoughtful</option>
-        <option value="concise">Concise</option>
-      </select>
-    </div>
-    <button id="generate-comment-btn" style="background: #0a66c2; color: white; border: none; padding: 8px 16px; border-radius: 16px; width: 100%; cursor: pointer; font-weight: 600;">Generate Comment</button>
+    <button id="generate-comment-btn" style="background: #f5812f; color: white; border: none; padding: 8px 16px; border-radius: 16px; width: 100%; cursor: pointer; font-weight: 600;">Generate Comment</button>
     <div id="dropdown-status" style="margin-top: 8px; font-size: 12px; color: #666;"></div>
     <div id="dropdown-spinner" class="hidden" style="text-align: center; margin-top: 8px;">
-      <div style="display: inline-block; width: 18px; height: 18px; border: 2px solid #0a66c2; border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite;"></div>
+      <div style="display: inline-block; width: 18px; height: 18px; border: 2px solid #f5812f; border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite;"></div>
     </div>
     <style>
       @keyframes spin {
@@ -187,13 +185,9 @@ function showCommentAssistantDropdown(buttonElement, commentSection) {
     spinnerElement.classList.remove('hidden');
     statusElement.textContent = "Generating comment...";
     
-    // Get selected comment style
-    const styleSelect = document.getElementById('comment-style-dropdown');
-    const selectedStyle = styleSelect.value;
-    
     // Get post content from the button's data attribute
     const postContent = buttonElement.getAttribute('data-post-content');
-    
+  
     if (!postContent || postContent === "") {
       statusElement.textContent = "Error: Could not get post content";
       spinnerElement.classList.add('hidden');
@@ -205,7 +199,6 @@ function showCommentAssistantDropdown(buttonElement, commentSection) {
     chrome.runtime.sendMessage(
       {
         action: "generateComment", 
-        style: selectedStyle,
         postContent: postContent
       },
       function(response) {
@@ -252,28 +245,33 @@ function fillCommentField(text) {
     
     // First try to get the currently focused comment field
     let commentField = document.activeElement;
+    let fieldSource = "active element";
     
     // Check if the active element is actually a comment field
-    if (!commentField || 
-        !(commentField.getAttribute('role') === 'textbox' && commentField.getAttribute('contenteditable') === 'true') &&
-        !(commentField.classList.contains('ql-editor') && commentField.getAttribute('contenteditable') === 'true')) {
-      
-      console.log('[Extension] Active element is not a comment field, searching for visible comment fields');
+    const isCommentField = element => 
+      element && 
+      ((element.getAttribute('role') === 'textbox' && element.getAttribute('contenteditable') === 'true') ||
+       (element.classList.contains('ql-editor') && element.getAttribute('contenteditable') === 'true'));
+    
+    if (!isCommentField(commentField)) {
+      console.log('[Extension] Active element is not a comment field:', commentField);
       
       // Find all potential comment fields
       const commentFields = document.querySelectorAll('div[role="textbox"][contenteditable="true"], .ql-editor[contenteditable="true"]');
+      console.log(`[Extension] Found ${commentFields.length} potential comment fields`);
       
       // Try to find the most relevant comment field (visible and near the dropdown)
       const dropdown = document.querySelector('.linkedin-comment-assistant-dropdown');
       
       if (dropdown && commentFields.length > 0) {
+        fieldSource = "closest to dropdown";
         const dropdownRect = dropdown.getBoundingClientRect();
         
         // Find the closest visible comment field to our dropdown
         let closestDistance = Infinity;
         let closestField = null;
         
-        commentFields.forEach(field => {
+        commentFields.forEach((field, index) => {
           const fieldRect = field.getBoundingClientRect();
           
           // Check if the field is visible
@@ -293,36 +291,23 @@ function fillCommentField(text) {
         
         if (closestField) {
           commentField = closestField;
-          console.log('[Extension] Found closest visible comment field to dropdown');
+          console.log(`[Extension] Using closest comment field (distance: ${closestDistance.toFixed(2)}px)`);
         }
       }
       
-      // If we still don't have a comment field, just take the first visible one
-      if (!commentField) {
-        for (const field of commentFields) {
-          const rect = field.getBoundingClientRect();
-          if (rect.height > 0 && rect.width > 0 && 
-              rect.top >= 0 && rect.bottom <= window.innerHeight) {
-            commentField = field;
-            console.log('[Extension] Using first visible comment field');
-            break;
-          }
-        }
-      }
-      
-      // Last resort - just take the first one
+      // If we still don't have a comment field, take the first one
       if (!commentField && commentFields.length > 0) {
+        fieldSource = "first available";
         commentField = commentFields[0];
-        console.log('[Extension] Using first available comment field as fallback');
+        console.log('[Extension] Using first available comment field');
       }
     }
     
     if (!commentField) {
-      console.warn('[Extension] No comment field found');
       return {success: false, error: "No comment field found. Click on a comment box first."};
     }
     
-    console.log('[Extension] Successfully found comment field');
+    console.log(`[Extension] Found comment field (source: ${fieldSource}):`, commentField);
     
     // Focus the field first
     commentField.focus();
@@ -331,16 +316,12 @@ function fillCommentField(text) {
     commentField.textContent = text;
     
     // Trigger input event to ensure LinkedIn registers the change
-    const inputEvent = new Event('input', {
-      bubbles: true,
-      cancelable: true,
-    });
-    commentField.dispatchEvent(inputEvent);
+    commentField.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
     
     return {success: true};
     
   } catch (error) {
-    console.error("[Extension] LinkedIn Comment Assistant Error:", error);
+    console.error("[Extension] Error:", error);
     return {success: false, error: error.toString()};
   }
 }
