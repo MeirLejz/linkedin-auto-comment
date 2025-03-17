@@ -26,13 +26,12 @@ def generate_comment():
         # Get request data
         data = request.json
         post_content = data.get('post_content')
-        style = data.get('style')
         
         if not post_content:
             return jsonify({"error": "Post content is required"}), 400
             
-        # Get the appropriate prompt based on style
-        prompt = get_prompt_for_style(style, post_content)
+        # Get prompt
+        prompt = get_prompt(post_content)
         
         # Get system prompt
         system_prompt = PROMPTS["system"].get("default")
@@ -56,8 +55,8 @@ def generate_comment():
         print(f"Error generating comment: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-def get_prompt_for_style(style, post_content):
-    """Helper function to get the appropriate prompt based on style"""
+def get_prompt(post_content):
+    """Helper function to get the prompt"""
     base_prompt = f'Post content: "{post_content}"'
-    prompt_template = PROMPTS.get(style, PROMPTS.get("default"))
+    prompt_template = PROMPTS.get("system").get("default")
     return f"{prompt_template}\n\n{base_prompt}"
