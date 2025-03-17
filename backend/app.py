@@ -31,7 +31,7 @@ def generate_comment():
             return jsonify({"error": "Post content is required"}), 400
             
         # Get prompt
-        prompt = get_prompt(post_content)
+        prompt = f'Post content: "{post_content}"'
         
         # Get system prompt
         system_prompt = PROMPTS["system"].get("default")
@@ -54,9 +54,3 @@ def generate_comment():
     except Exception as e:
         print(f"Error generating comment: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-def get_prompt(post_content):
-    """Helper function to get the prompt"""
-    base_prompt = f'Post content: "{post_content}"'
-    prompt_template = PROMPTS.get("system").get("default")
-    return f"{prompt_template}\n\n{base_prompt}"

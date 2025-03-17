@@ -1,6 +1,6 @@
 // Backend URL Configuration
 const DEV_URL = "http://localhost:5000";
-const PROD_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com/";
+const PROD_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com";
 
 // Set to true for development, false for production
 const IS_DEVELOPMENT = false;
@@ -46,11 +46,11 @@ async function generateComment(postContent) {
     const response = await fetch(`${BACKEND_URL}/generate-comment`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         post_content: postContent,
-      })
+      }),
     });
     
     console.log("Backend API response status:", response.status);
