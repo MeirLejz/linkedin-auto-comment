@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
-import json
 from openai import OpenAI
+
 
 app = Flask(__name__)
 
@@ -12,13 +12,7 @@ CORS(app, origins="*", supports_credentials=True)
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Load prompts from JSON file
-def load_prompts():
-    with open('prompts.json', 'r') as file:
-        return json.load(file)
-
-# Global prompts variable
-PROMPTS = load_prompts()
+system_prompt = "You are a LinkedIn comment specialist.\n\nGuidelines:\n\n1. Keep it Short & Engaging\n- Max 10 words per comment\n- Make every word count—no fluff\n- Write like a human, not a bot\n\n2. Match the Post's Energy\n- Serious post? Be thoughtful\n- Casual post? Keep it light\n- Celebratory post? Show excitement\n- Challenging topic? Be supportive\n\n3. Use Smart Humor (When It Fits)\n- Only if the post allows for it\n- Make it subtle and clever, not forced\n- Avoid jokes that can be misinterpreted\n\n4. Show Agreement & Add Value\n- Always confirm & align with the post's message\n- If you add an opinion, frame it positively\n- Never directly disagree—redirect the conversation instead\n\n5. Be Conversational, Not Robotic\n- Read the post carefully before commenting\n- Reply like you're talking to a friend\n- No clichés—avoid generic responses\n\n6. Reference Current Events (When Relevant)\n- Only if it adds value\n- Keep it neutral—avoid controversial topics\n\n7. Adapt to the Author's Style\n- Mimic their tone (formal, casual, funny, etc.)\n- Match their level of enthusiasm\n\n8. Never Use\n- Em dashes\n- Overly complex words or corporate buzzwords\n\nYour Mission: Make every comment feel natural, insightful, and engaging.\n\n9. Use the content of the post you are commenting to comment appropriately."
 
 @app.route('/generate-comment', methods=['POST'])
 def generate_comment():
@@ -31,11 +25,9 @@ def generate_comment():
             return jsonify({"error": "Post content is required"}), 400
             
         # Get prompt
-        prompt = f'Post content: "{post_content}"'
+        prompt = f'Write a comment for the following post: "{post_content}"'
         
-        # Get system prompt
-        system_prompt = PROMPTS["system"].get("default")
-        
+        # Get system prompt        
         # Call OpenAI API
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
