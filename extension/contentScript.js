@@ -202,29 +202,15 @@ function showCommentAssistantDropdown(buttonElement, commentSection) {
         postContent: postContent
       },
       function(response) {
-        // Hide loading spinner
-        spinnerElement.classList.add('hidden');
-        generateButton.disabled = false;
-        
         if (chrome.runtime.lastError) {
+          spinnerElement.classList.add('hidden');
+          generateButton.disabled = false;
           statusElement.textContent = "Error: " + chrome.runtime.lastError.message;
           return;
         }
         
-        if (response && response.success) {
-          // Fill the comment field
-          const result = fillCommentField(response.comment);
-          
-          if (result.success) {
-            statusElement.textContent = "Comment inserted successfully!";
-            // Close the dropdown after a short delay
-            setTimeout(() => dropdown.remove(), 1500);
-          } else {
-            statusElement.textContent = "Error: " + result.error;
-          }
-        } else {
-          statusElement.textContent = "Error: " + (response?.error || "Failed to generate comment");
-        }
+        // For streaming, we just keep the UI in loading state
+        // Updates will come through the message listener
       }
     );
   });
@@ -647,3 +633,27 @@ function startPeriodicCheck() {
 }
 
 startPeriodicCheck();
+
+// Add a listener for stream updates
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.action === "commentStreamUpdate") {
+    if (message.error) {
+      spinnerElement.classList.add('hidden');
+      generateButton.disabled = false;
+      statusElement.textContent = "Error: " + message.error;
+      return;
+    }
+    
+    // Update the comment field with the current accumulated text
+    fillCommentField(message.comment);
+    
+    // If this is the final update
+    if (message.done) {
+      spinnerElement.classList.add('hidden');
+      generateButton.disabled = false;
+      statusElement.textContent = "Comment inserted successfully!";
+      // Close the dropdown after a short delay
+      setTimeout(() => dropdown.remove(), 1500);
+    }
+  }
+});

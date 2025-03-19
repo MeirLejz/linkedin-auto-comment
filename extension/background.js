@@ -15,59 +15,107 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   
   // Handle comment generation
   if (request.action === "generateComment") {
-    console.log("Generate comment request received:", {
-      postContentLength: request.postContent?.length
-    });
+    console.log("Generate comment request received");
     
-    console.log("Calling backend to generate comment...");
-    generateComment(request.postContent)
-      .then(comment => {
-        console.log("Comment generated successfully:", comment.substring(0, 30) + "...");
-        sendResponse({success: true, comment: comment});
-      })
-      .catch(error => {
-        console.error("Error generating comment:", error);
-        sendResponse({
-          success: false, 
-          error: error.message || "Failed to generate comment"
-        });
-      });
+    // Start streaming comment generation
+    streamComment(request.postContent, sender.tab.id);
     
+    // Send initial response
+    sendResponse({success: true, streaming: true});
     return true; // Required for async sendResponse
   }
 });
 
-// Function to generate a comment using backend API
-async function generateComment(postContent) {
-  console.log("generateComment called");
+// Function to stream a comment from the backend API
+async function streamComment(postContent, tabId) {
+  console.log("streamComment called");
   try {
-    console.log("Sending request to backend API...");
-    // Call backend API
+    // Call backend API with fetch
     const response = await fetch(`${BACKEND_URL}/generate-comment`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        post_content: postContent,
+        post_content: postContent
       }),
     });
     
-    console.log("Backend API response status:", response.status);
-    
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("API error response:", errorData);
-      throw new Error(errorData.error || `API request failed with status ${response.status}`);
+      chrome.tabs.sendMessage(tabId, {
+        action: "commentStreamUpdate",
+        error: errorData.error || `API request failed with status ${response.status}`
+      });
+      return;
     }
     
-    const data = await response.json();
-    console.log("API response received:", data);
-    return data.comment;
+    // Initialize comment accumulator
+    let accumulatedComment = "";
     
+    // Create a reader for the stream
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    
+    // Process the stream
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) {
+        console.log("Stream complete");
+        break;
+      }
+      
+      // Decode the chunk
+      const chunk = decoder.decode(value, { stream: true });
+      
+      // Process each line in the chunk
+      const lines = chunk.split('\n\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(line.substring(6));
+            
+            if (data.error) {
+              chrome.tabs.sendMessage(tabId, {
+                action: "commentStreamUpdate",
+                error: data.error
+              });
+              return;
+            }
+            
+            if (data.content) {
+              // Accumulate the comment
+              accumulatedComment += data.content;
+              
+              // Send update to content script
+              chrome.tabs.sendMessage(tabId, {
+                action: "commentStreamUpdate",
+                comment: accumulatedComment,
+                done: false
+              });
+            }
+            
+            if (data.done) {
+              // Final update
+              chrome.tabs.sendMessage(tabId, {
+                action: "commentStreamUpdate",
+                comment: accumulatedComment,
+                done: true
+              });
+            }
+          } catch (e) {
+            console.error("Error parsing stream data:", e, line);
+          }
+        }
+      }
+    }
   } catch (error) {
-    console.error("Error in generateComment:", error);
-    throw error;
+    console.error("Error in streamComment:", error);
+    chrome.tabs.sendMessage(tabId, {
+      action: "commentStreamUpdate",
+      error: error.message || "Failed to generate comment"
+    });
   }
 }
 
