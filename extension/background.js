@@ -17,17 +17,16 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === "generateComment") {
     console.log("Generate comment request received");
     
-    // Start streaming comment generation
-    streamComment(request.postContent, sender.tab.id);
+    // Start streaming comment generation and pass the sendResponse function
+    streamComment(request.postContent, sender.tab.id, sendResponse);
     
-    // Send initial response
-    sendResponse({success: true, streaming: true});
-    return true; // Required for async sendResponse
+    // Indicate we'll respond asynchronously
+    return true;
   }
 });
 
 // Function to stream a comment from the backend API
-async function streamComment(postContent, tabId) {
+async function streamComment(postContent, tabId, sendResponse) {
   console.log("streamComment called");
   try {
     // Call backend API with fetch
@@ -110,12 +109,18 @@ async function streamComment(postContent, tabId) {
         }
       }
     }
+    
+    // Send a final response to close the message channel properly
+    sendResponse({success: true, complete: true});
   } catch (error) {
     console.error("Error in streamComment:", error);
     chrome.tabs.sendMessage(tabId, {
       action: "commentStreamUpdate",
       error: error.message || "Failed to generate comment"
     });
+    
+    // Send error response to close the message channel properly
+    sendResponse({success: false, error: error.message || "Failed to generate comment"});
   }
 }
 
