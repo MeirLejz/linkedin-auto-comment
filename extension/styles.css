@@ -1,16 +1,5 @@
-.linkedin-comment-assistant-dropdown {
-  position: absolute;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 12px;
-  z-index: 9999;
-  width: 250px;
-}
-
 .linkedin-comment-assistant-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.8);
   border: none;
   color: #0a66c2;
   font-weight: 600;
@@ -28,16 +17,16 @@
   float: left;
   transition: all 0.1s ease;
   position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 4px 4px 4px rgba(0, 0, 0, 0.1);
   top: 0;
 }
 
 .linkedin-comment-assistant-btn:hover {
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: rgba(255, 255, 255, 0.9);
 }
 
 .linkedin-comment-assistant-btn:active {
-  background-color: rgba(0, 0, 0, 0.15);
+  background-color: rgba(255, 255, 255, 1);
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
   top: 2px;
   transform: scale(0.98);

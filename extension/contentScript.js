@@ -182,26 +182,31 @@ function fillCommentField(text) {
       const commentFields = document.querySelectorAll('div[role="textbox"][contenteditable="true"], .ql-editor[contenteditable="true"]');
       console.log(`[Extension] Found ${commentFields.length} potential comment fields`);
       
-      // Try to find the most relevant comment field (visible and near the dropdown)
-      const dropdown = document.querySelector('.linkedin-comment-assistant-dropdown');
+      // Try to find the most relevant comment field (visible and near the button)
+      const button = document.querySelector('.linkedin-comment-assistant-btn');
       
-      if (dropdown && commentFields.length > 0) {
-        fieldSource = "closest to dropdown";
-        const dropdownRect = dropdown.getBoundingClientRect();
+      if (button && commentFields.length > 0) {
+        fieldSource = "closest to button";
+        const buttonRect = button.getBoundingClientRect();
         
-        // Find the closest visible comment field to our dropdown
+        // Find the closest visible comment field to our button
         let closestDistance = Infinity;
         let closestField = null;
         
         commentFields.forEach((field, index) => {
+          // Skip if this is our button
+          if (field === button || field.contains(button) || button.contains(field)) {
+            return;
+          }
+          
           const fieldRect = field.getBoundingClientRect();
           
           // Check if the field is visible
           if (fieldRect.height > 0 && fieldRect.width > 0) {
-            // Calculate distance between field and dropdown
+            // Calculate distance between field and button
             const distance = Math.sqrt(
-              Math.pow(dropdownRect.left - fieldRect.left, 2) + 
-              Math.pow(dropdownRect.top - fieldRect.top, 2)
+              Math.pow(buttonRect.left - fieldRect.left, 2) + 
+              Math.pow(buttonRect.top - fieldRect.top, 2)
             );
             
             if (distance < closestDistance) {
@@ -220,13 +225,26 @@ function fillCommentField(text) {
       // If we still don't have a comment field, take the first one
       if (!commentField && commentFields.length > 0) {
         fieldSource = "first available";
-        commentField = commentFields[0];
+        // Make sure we don't select our button
+        for (const field of commentFields) {
+          if (field !== button && !field.contains(button) && !button?.contains(field)) {
+            commentField = field;
+            break;
+          }
+        }
         console.log('[Extension] Using first available comment field');
       }
     }
     
     if (!commentField) {
       return {success: false, error: "No comment field found. Click on a comment box first."};
+    }
+    
+    // Double-check that we're not targeting our button
+    if (commentField.classList.contains('linkedin-comment-assistant-btn') || 
+        commentField.closest('.linkedin-comment-assistant-btn')) {
+      console.error('[Extension] Error: Attempted to use our button as a comment field');
+      return {success: false, error: "Error identifying comment field."};
     }
     
     console.log(`[Extension] Found comment field (source: ${fieldSource}):`, commentField);
