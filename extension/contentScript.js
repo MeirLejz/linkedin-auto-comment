@@ -108,6 +108,21 @@ function injectCommentAssistantButton() {
       // Store the post content as a data attribute on the button
       assistantButton.setAttribute('data-post-content', postContent);
       
+      // Store a reference to the comment field
+      // Find the actual input field within this section
+      const inputField = 
+        section.querySelector('div[role="textbox"][contenteditable="true"]') || 
+        section.querySelector('.ql-editor[contenteditable="true"]') ||
+        (section.getAttribute('role') === 'textbox' ? section : null);
+      
+      if (inputField) {
+        // Store a unique ID for the input field
+        const inputId = generateUniqueId(inputField);
+        assistantButton.setAttribute('data-target-input-id', inputId);
+        // Also store the input field's selector path for more reliable retrieval
+        assistantButton.setAttribute('data-target-input-selector', getElementSelector(inputField));
+      }
+      
       // Add click handler to directly generate comment
       assistantButton.addEventListener('click', (event) => {
         event.preventDefault();
@@ -146,6 +161,41 @@ function generateUniqueId(element) {
   return `${position}-${classes}`;
 }
 
+// Helper function to get a CSS selector path for an element
+function getElementSelector(element) {
+  if (!element) return '';
+  
+  // Simple implementation - could be enhanced for more reliable selectors
+  let path = [];
+  let currentElement = element;
+  
+  while (currentElement && currentElement !== document.body) {
+    let selector = currentElement.tagName.toLowerCase();
+    
+    // Add id if available
+    if (currentElement.id) {
+      selector += '#' + currentElement.id;
+    } else {
+      // Add classes
+      if (currentElement.className && typeof currentElement.className === 'string') {
+        selector += '.' + currentElement.className.trim().replace(/\s+/g, '.');
+      }
+      
+      // Add position among siblings
+      const siblings = Array.from(currentElement.parentNode.children);
+      const index = siblings.indexOf(currentElement);
+      if (siblings.length > 1) {
+        selector += `:nth-child(${index + 1})`;
+      }
+    }
+    
+    path.unshift(selector);
+    currentElement = currentElement.parentNode;
+  }
+  
+  return path.join(' > ');
+}
+
 // Function to directly generate a comment when the AI button is clicked
 function generateComment(buttonElement, commentSection) {
   // Get post content from the button's data attribute
@@ -156,12 +206,44 @@ function generateComment(buttonElement, commentSection) {
     return;
   }
   
-  // Find and update the placeholder in the comment field
-  // We'll use a temporary empty string to find the field without actually filling it
-  const result = fillCommentField("");
-  if (result.success) {
-    // We found the comment field, now update its placeholder
-    updateCommentPlaceholder("Thinking...");
+  // Store the button element in a global variable so we can reference it when the response comes back
+  window.currentCommentButton = buttonElement;
+  
+  // Find the specific input field for this button
+  const targetInputId = buttonElement.getAttribute('data-target-input-id');
+  const targetInputSelector = buttonElement.getAttribute('data-target-input-selector');
+  
+  // Try to find the input field using the stored information
+  let inputField = null;
+  
+  if (targetInputSelector) {
+    try {
+      inputField = document.querySelector(targetInputSelector);
+    } catch (e) {
+      console.log('Error with selector, falling back to other methods:', e);
+    }
+  }
+  
+  // If we couldn't find it with the selector, try other methods
+  if (!inputField) {
+    // Look for input fields near the button
+    inputField = 
+      commentSection.querySelector('div[role="textbox"][contenteditable="true"]') || 
+      commentSection.querySelector('.ql-editor[contenteditable="true"]') ||
+      (commentSection.getAttribute('role') === 'textbox' ? commentSection : null);
+  }
+  
+  if (inputField) {
+    // Focus the input field
+    inputField.focus();
+    
+    // Update placeholder
+    updateCommentPlaceholder("Thinking...", inputField);
+    
+    // Store the input field for later use
+    window.currentCommentField = inputField;
+  } else {
+    console.error("Could not find input field for this button");
   }
   
   // Request comment generation from background script
@@ -174,22 +256,25 @@ function generateComment(buttonElement, commentSection) {
       if (chrome.runtime.lastError) {
         console.error("Error: " + chrome.runtime.lastError.message);
         // Reset placeholder if there was an error
-        updateCommentPlaceholder("Add a comment…");
+        if (window.currentCommentField) {
+          updateCommentPlaceholder("Add a comment…", window.currentCommentField);
+        }
         return;
       }
     }
   );
 }
 
-// Helper function to update the placeholder text of the active comment field
-function updateCommentPlaceholder(newPlaceholder) {
+// Helper function to update the placeholder text of a specific comment field
+function updateCommentPlaceholder(newPlaceholder, commentField) {
   try {
-    // Find the active comment field
-    const commentField = document.activeElement;
-    if (!commentField || 
-        !(commentField.getAttribute('role') === 'textbox' || 
-          commentField.classList.contains('ql-editor'))) {
-      return false;
+    if (!commentField) {
+      commentField = document.activeElement;
+      if (!commentField || 
+          !(commentField.getAttribute('role') === 'textbox' || 
+            commentField.classList.contains('ql-editor'))) {
+        return false;
+      }
     }
     
     // Update the data-placeholder attribute
@@ -213,79 +298,95 @@ function updateCommentPlaceholder(newPlaceholder) {
   }
 }
 
-// Function to find and fill the LinkedIn comment field
-function fillCommentField(text) {
+// Function to find and fill a specific LinkedIn comment field
+function fillCommentField(text, specificField = null) {
   try {
     console.log('[Extension] Attempting to fill comment field with:', text);
     
-    // First try to get the currently focused comment field
-    let commentField = document.activeElement;
-    let fieldSource = "active element";
+    let commentField = specificField;
+    let fieldSource = "specified field";
     
-    // Check if the active element is actually a comment field
-    const isCommentField = element => 
-      element && 
-      ((element.getAttribute('role') === 'textbox' && element.getAttribute('contenteditable') === 'true') ||
-       (element.classList.contains('ql-editor') && element.getAttribute('contenteditable') === 'true'));
+    // If no specific field was provided, try to use the stored field
+    if (!commentField && window.currentCommentField) {
+      commentField = window.currentCommentField;
+      fieldSource = "stored field";
+    }
     
-    if (!isCommentField(commentField)) {
-      console.log('[Extension] Active element is not a comment field:', commentField);
+    // If we still don't have a field, try to use the active element
+    if (!commentField) {
+      commentField = document.activeElement;
+      fieldSource = "active element";
       
-      // Find all potential comment fields
-      const commentFields = document.querySelectorAll('div[role="textbox"][contenteditable="true"], .ql-editor[contenteditable="true"]');
-      console.log(`[Extension] Found ${commentFields.length} potential comment fields`);
+      // Check if the active element is actually a comment field
+      const isCommentField = element => 
+        element && 
+        ((element.getAttribute('role') === 'textbox' && element.getAttribute('contenteditable') === 'true') ||
+         (element.classList.contains('ql-editor') && element.getAttribute('contenteditable') === 'true'));
       
-      // Try to find the most relevant comment field (visible and near the button)
-      const button = document.querySelector('.linkedin-comment-assistant-btn');
-      
-      if (button && commentFields.length > 0) {
-        fieldSource = "closest to button";
-        const buttonRect = button.getBoundingClientRect();
+      if (!isCommentField(commentField)) {
+        console.log('[Extension] Active element is not a comment field:', commentField);
         
-        // Find the closest visible comment field to our button
-        let closestDistance = Infinity;
-        let closestField = null;
-        
-        commentFields.forEach((field, index) => {
-          // Skip if this is our button
-          if (field === button || field.contains(button) || button.contains(field)) {
-            return;
-          }
-          
-          const fieldRect = field.getBoundingClientRect();
-          
-          // Check if the field is visible
-          if (fieldRect.height > 0 && fieldRect.width > 0) {
-            // Calculate distance between field and button
-            const distance = Math.sqrt(
-              Math.pow(buttonRect.left - fieldRect.left, 2) + 
-              Math.pow(buttonRect.top - fieldRect.top, 2)
-            );
-            
-            if (distance < closestDistance) {
-              closestDistance = distance;
-              closestField = field;
+        // If we have a stored button, try to find its input field
+        if (window.currentCommentButton) {
+          const targetSelector = window.currentCommentButton.getAttribute('data-target-input-selector');
+          if (targetSelector) {
+            try {
+              commentField = document.querySelector(targetSelector);
+              if (commentField) {
+                fieldSource = "button's target selector";
+              }
+            } catch (e) {
+              console.log('Error with selector:', e);
             }
           }
-        });
-        
-        if (closestField) {
-          commentField = closestField;
-          console.log(`[Extension] Using closest comment field (distance: ${closestDistance.toFixed(2)}px)`);
         }
-      }
-      
-      // If we still don't have a comment field, take the first one
-      if (!commentField && commentFields.length > 0) {
-        fieldSource = "first available";
-        // Make sure we don't select our button
-        for (const field of commentFields) {
-          if (field !== button && !field.contains(button) && !button?.contains(field)) {
-            commentField = field;
-            break;
+        
+        // If we still don't have a field, fall back to the old method
+        if (!commentField) {
+          // Find all potential comment fields
+          const commentFields = document.querySelectorAll('div[role="textbox"][contenteditable="true"], .ql-editor[contenteditable="true"]');
+          console.log(`[Extension] Found ${commentFields.length} potential comment fields`);
+          
+          // Try to find the most relevant comment field (visible and near the button)
+          const button = window.currentCommentButton || document.querySelector('.linkedin-comment-assistant-btn');
+          
+          if (button && commentFields.length > 0) {
+            fieldSource = "closest to button";
+            const buttonRect = button.getBoundingClientRect();
+            
+            // Find the closest visible comment field to our button
+            let closestDistance = Infinity;
+            let closestField = null;
+            
+            commentFields.forEach((field, index) => {
+              // Skip if this is our button
+              if (field === button || field.contains(button) || button.contains(field)) {
+                return;
+              }
+              
+              const fieldRect = field.getBoundingClientRect();
+              
+              // Check if the field is visible
+              if (fieldRect.height > 0 && fieldRect.width > 0) {
+                // Calculate distance between field and button
+                const distance = Math.sqrt(
+                  Math.pow(buttonRect.left - fieldRect.left, 2) + 
+                  Math.pow(buttonRect.top - fieldRect.top, 2)
+                );
+                
+                if (distance < closestDistance) {
+                  closestDistance = distance;
+                  closestField = field;
+                }
+              }
+            });
+            
+            if (closestField) {
+              commentField = closestField;
+              console.log(`[Extension] Using closest comment field (distance: ${closestDistance.toFixed(2)}px)`);
+            }
           }
         }
-        console.log('[Extension] Using first available comment field');
       }
     }
     
@@ -650,6 +751,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
     
     // Update the comment field with the current accumulated text
-    fillCommentField(message.comment);
+    // Use the stored field if available
+    fillCommentField(message.comment, window.currentCommentField);
   }
 });
