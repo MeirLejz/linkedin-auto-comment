@@ -1,37 +1,30 @@
 .linkedin-comment-assistant-btn {
-  background: rgba(255, 255, 255, 0.8);
+  background-color: transparent;
   border: none;
-  color: #0a66c2;
-  font-weight: 600;
-  margin-right: 4px;
-  margin-left: 8px;  /* Added left margin */
-  padding: 4px 4px 4px 4px;  /* Added more padding on the left */
   cursor: pointer;
-  border-radius: 50%;
-  font-size: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  vertical-align: baseline;
-  line-height: normal;
-  float: left;
-  transition: all 0.1s ease;
+  border-radius: 50%;
+  transition: all 0.2s ease;
   position: relative;
-  box-shadow: 4px 4px 4px 4px rgba(0, 0, 0, 0.1);
-  top: 0;
+  margin-left: 4px;
+  padding: 0;
+  width: 32px;
+  height: 32px;
 }
 
 .linkedin-comment-assistant-btn:hover {
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(0, 0, 0, 0.08);
 }
 
 .linkedin-comment-assistant-btn:active {
-  background-color: rgba(255, 255, 255, 1);
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
-  top: 2px;
-  transform: scale(0.98);
+  background-color: rgba(0, 0, 0, 0.12);
+  transform: scale(0.95);
 }
 
 .linkedin-comment-assistant-btn img {
   display: block;
+  width: 20px;
+  height: 20px;
 }

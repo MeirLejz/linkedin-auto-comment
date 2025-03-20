@@ -98,10 +98,12 @@ function injectCommentAssistantButton() {
       
       // Create our button
       const assistantButton = document.createElement('button');
-      assistantButton.className = 'linkedin-comment-assistant-btn';
+      assistantButton.className = 'linkedin-comment-assistant-btn artdeco-button artdeco-button--circle artdeco-button--muted artdeco-button--2 artdeco-button--tertiary';
+      assistantButton.title = 'Generate AI Comment';
+      assistantButton.setAttribute('aria-label', 'Generate AI Comment');
+      assistantButton.setAttribute('type', 'button');
       // Use the icon image instead of text
       assistantButton.innerHTML = '<img src="' + chrome.runtime.getURL('icon.png') + '" alt="AI" width="20" height="20">';
-      assistantButton.title = 'Generate AI Comment';
       
       // Store the post content as a data attribute on the button
       assistantButton.setAttribute('data-post-content', postContent);
@@ -113,8 +115,17 @@ function injectCommentAssistantButton() {
         generateComment(event.currentTarget, section);
       });
       
-      // Insert the button before the comment button
-      actionsArea.prepend(assistantButton);
+      // Find the emoji button container or the detour container to insert our button next to
+      const buttonContainer = actionsArea.querySelector('.display-flex:not(.justify-space-between)') || 
+                              actionsArea.querySelector('.display-flex');
+      
+      if (buttonContainer) {
+        // Insert at the beginning of the button container
+        buttonContainer.prepend(assistantButton);
+      } else {
+        // Fallback to prepending to the actions area
+        actionsArea.prepend(assistantButton);
+      }
       
       // Mark the section as having a button
       section.setAttribute('data-assistant-button-added', 'true');
