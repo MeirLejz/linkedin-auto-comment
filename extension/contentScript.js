@@ -106,11 +106,11 @@ function injectCommentAssistantButton() {
       // Store the post content as a data attribute on the button
       assistantButton.setAttribute('data-post-content', postContent);
       
-      // Add click handler to show the dropdown
+      // Add click handler to directly generate comment
       assistantButton.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
-        showCommentAssistantDropdown(event.currentTarget, section);
+        generateComment(event.currentTarget, section);
       });
       
       // Insert the button before the comment button
@@ -135,93 +135,29 @@ function generateUniqueId(element) {
   return `${position}-${classes}`;
 }
 
-// Create and show the dropdown UI
-function showCommentAssistantDropdown(buttonElement, commentSection) {
-  // Remove any existing dropdown
-  const existingDropdown = document.querySelector('.linkedin-comment-assistant-dropdown');
-  if (existingDropdown) {
-    existingDropdown.remove();
+// Function to directly generate a comment when the AI button is clicked
+function generateComment(buttonElement, commentSection) {
+  // Get post content from the button's data attribute
+  const postContent = buttonElement.getAttribute('data-post-content');
+
+  if (!postContent || postContent === "") {
+    console.error("Error: Could not get post content");
+    return;
   }
   
-  // Create dropdown container
-  const dropdown = document.createElement('div');
-  dropdown.className = 'linkedin-comment-assistant-dropdown';
-  
-  // Position the dropdown near the button
-  const buttonRect = buttonElement.getBoundingClientRect();
-  dropdown.style.top = `${buttonRect.bottom + window.scrollY}px`;
-  dropdown.style.left = `${buttonRect.left + window.scrollX}px`;
-  
-  // Create dropdown content
-  dropdown.innerHTML = `
-    <div style="font-weight: 600; margin-bottom: 8px; color: #000000;">Generate AI Comment</div>
-    <button id="generate-comment-btn" style="background: #f5812f; color: white; border: none; padding: 8px 16px; border-radius: 16px; width: 100%; cursor: pointer; font-weight: 600;">Generate Comment</button>
-    <div id="dropdown-status" style="margin-top: 8px; font-size: 12px; color: #666;"></div>
-    <div id="dropdown-spinner" class="hidden" style="text-align: center; margin-top: 8px;">
-      <div style="display: inline-block; width: 18px; height: 18px; border: 2px solid #f5812f; border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite;"></div>
-    </div>
-    <style>
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+  // Request comment generation from background script
+  chrome.runtime.sendMessage(
+    {
+      action: "generateComment", 
+      postContent: postContent
+    },
+    function(response) {
+      if (chrome.runtime.lastError) {
+        console.error("Error: " + chrome.runtime.lastError.message);
+        return;
       }
-      .hidden {
-        display: none;
-      }
-    </style>
-  `;
-  
-  // Add the dropdown to the page
-  document.body.appendChild(dropdown);
-  
-  // Add click handler for generate button
-  const generateButton = document.getElementById('generate-comment-btn');
-  const statusElement = document.getElementById('dropdown-status');
-  const spinnerElement = document.getElementById('dropdown-spinner');
-  
-  generateButton.addEventListener('click', async () => {
-    // Show loading state
-    generateButton.disabled = true;
-    spinnerElement.classList.remove('hidden');
-    statusElement.textContent = "Generating comment...";
-    
-    // Get post content from the button's data attribute
-    const postContent = buttonElement.getAttribute('data-post-content');
-  
-    if (!postContent || postContent === "") {
-      statusElement.textContent = "Error: Could not get post content";
-      spinnerElement.classList.add('hidden');
-      generateButton.disabled = false;
-      return;
     }
-    
-    // Request comment generation from background script
-    chrome.runtime.sendMessage(
-      {
-        action: "generateComment", 
-        postContent: postContent
-      },
-      function(response) {
-        if (chrome.runtime.lastError) {
-          spinnerElement.classList.add('hidden');
-          generateButton.disabled = false;
-          statusElement.textContent = "Error: " + chrome.runtime.lastError.message;
-          return;
-        }
-        
-        // For streaming, we just keep the UI in loading state
-        // Updates will come through the message listener
-      }
-    );
-  });
-  
-  // Close dropdown when clicking outside
-  document.addEventListener('click', function closeDropdown(e) {
-    if (!dropdown.contains(e.target) && e.target !== buttonElement) {
-      dropdown.remove();
-      document.removeEventListener('click', closeDropdown);
-    }
-  });
+  );
 }
 
 // Function to find and fill the LinkedIn comment field
@@ -638,22 +574,11 @@ startPeriodicCheck();
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.action === "commentStreamUpdate") {
     if (message.error) {
-      spinnerElement.classList.add('hidden');
-      generateButton.disabled = false;
-      statusElement.textContent = "Error: " + message.error;
+      console.error("Error generating comment:", message.error);
       return;
     }
     
     // Update the comment field with the current accumulated text
     fillCommentField(message.comment);
-    
-    // If this is the final update
-    if (message.done) {
-      spinnerElement.classList.add('hidden');
-      generateButton.disabled = false;
-      statusElement.textContent = "Comment inserted successfully!";
-      // Close the dropdown after a short delay
-      setTimeout(() => dropdown.remove(), 1500);
-    }
   }
 });

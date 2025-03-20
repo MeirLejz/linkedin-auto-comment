@@ -26,7 +26,10 @@
   vertical-align: baseline;
   line-height: normal;
   float: left;
-  transition: background-color 0.2s ease;
+  transition: all 0.1s ease;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  top: 0;
 }
 
 .linkedin-comment-assistant-btn:hover {
@@ -35,6 +38,9 @@
 
 .linkedin-comment-assistant-btn:active {
   background-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+  top: 2px;
+  transform: scale(0.98);
 }
 
 .linkedin-comment-assistant-btn img {
