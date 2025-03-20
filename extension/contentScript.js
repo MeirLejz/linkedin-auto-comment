@@ -103,7 +103,7 @@ function injectCommentAssistantButton() {
       assistantButton.setAttribute('aria-label', 'Generate AI Comment');
       assistantButton.setAttribute('type', 'button');
       // Use the icon image instead of text
-      assistantButton.innerHTML = '<img src="' + chrome.runtime.getURL('icon.png') + '" alt="AI" width="20" height="20">';
+      assistantButton.innerHTML = '<img src="' + chrome.runtime.getURL('icon.png') + '" alt="AI" width="32" height="32">';
       
       // Store the post content as a data attribute on the button
       assistantButton.setAttribute('data-post-content', postContent);
@@ -156,6 +156,14 @@ function generateComment(buttonElement, commentSection) {
     return;
   }
   
+  // Find and update the placeholder in the comment field
+  // We'll use a temporary empty string to find the field without actually filling it
+  const result = fillCommentField("");
+  if (result.success) {
+    // We found the comment field, now update its placeholder
+    updateCommentPlaceholder("Thinking...");
+  }
+  
   // Request comment generation from background script
   chrome.runtime.sendMessage(
     {
@@ -165,10 +173,44 @@ function generateComment(buttonElement, commentSection) {
     function(response) {
       if (chrome.runtime.lastError) {
         console.error("Error: " + chrome.runtime.lastError.message);
+        // Reset placeholder if there was an error
+        updateCommentPlaceholder("Add a comment…");
         return;
       }
     }
   );
+}
+
+// Helper function to update the placeholder text of the active comment field
+function updateCommentPlaceholder(newPlaceholder) {
+  try {
+    // Find the active comment field
+    const commentField = document.activeElement;
+    if (!commentField || 
+        !(commentField.getAttribute('role') === 'textbox' || 
+          commentField.classList.contains('ql-editor'))) {
+      return false;
+    }
+    
+    // Update the data-placeholder attribute
+    commentField.setAttribute('data-placeholder', newPlaceholder);
+    commentField.setAttribute('aria-placeholder', newPlaceholder);
+    
+    // Also try to find and update the a11y-text span that contains the placeholder
+    const commentContainer = commentField.closest('.editor-container, .comments-comment-box-comment__text-editor');
+    if (commentContainer) {
+      const placeholderSpan = commentContainer.querySelector('.a11y-text[id$="-text-editor-placeholder"]');
+      if (placeholderSpan) {
+        placeholderSpan.textContent = newPlaceholder;
+      }
+    }
+    
+    console.log(`[Extension] Updated placeholder to: ${newPlaceholder}`);
+    return true;
+  } catch (error) {
+    console.error('[Extension] Error updating placeholder:', error);
+    return false;
+  }
 }
 
 // Function to find and fill the LinkedIn comment field
