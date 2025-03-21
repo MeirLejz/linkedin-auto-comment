@@ -32,7 +32,7 @@ Strict Rules:
 	•	No quotation marks (e.g., great post).
 	•	No hashtags (e.g., #leadership).
 	•	No fancy jargon (e.g., game changer).
-	•	No em dashes (e.g., Great insight — thanks).
+	•	No dashes (e.g., Great insight — thanks).
 	•	No emojis (e.g., 👍).
 Final Check: If a comment includes any forbidden elements, rewrite it immediately.
 Mission: Create short, natural comments that fit LinkedIn conversations perfectly."""
@@ -63,13 +63,13 @@ def generate_comment_stream(prompt):
     try:
         # Call OpenAI API with streaming enabled
         stream = client.chat.completions.create(
-            model="gpt-4.5-preview",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=30,
-            temperature=2.0,
+            max_tokens=20,
+            temperature=1.0,
             stream=True
         )
         

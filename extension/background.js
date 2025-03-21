@@ -123,10 +123,3 @@ async function streamComment(postContent, tabId, sendResponse) {
     sendResponse({success: false, error: error.message || "Failed to generate comment"});
   }
 }
-
-// Function to extract post content from a LinkedIn post
-function extractPostContent(postElement) {
-  // This function is now handled in the content script
-  // Keeping this as a placeholder in case we need server-side extraction in the future
-  return "";
-}
