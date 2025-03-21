@@ -103,7 +103,7 @@ function injectCommentAssistantButton() {
       assistantButton.setAttribute('aria-label', 'Generate AI Comment');
       assistantButton.setAttribute('type', 'button');
       // Use the icon image instead of text
-      assistantButton.innerHTML = '<img src="' + chrome.runtime.getURL('icon.png') + '" alt="AI" width="32" height="32">';
+      assistantButton.innerHTML = '<img src="' + chrome.runtime.getURL('button.png') + '" alt="AI" width="32" height="32">';
       
       // Store the post content as a data attribute on the button
       assistantButton.setAttribute('data-post-content', postContent);

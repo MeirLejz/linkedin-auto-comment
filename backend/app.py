@@ -63,13 +63,13 @@ def generate_comment_stream(prompt):
     try:
         # Call OpenAI API with streaming enabled
         stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4.5-preview",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=150,
-            temperature=0.7,
+            max_tokens=30,
+            temperature=2.0,
             stream=True
         )
         

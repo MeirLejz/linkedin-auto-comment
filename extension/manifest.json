@@ -25,7 +25,7 @@
     ],
     "web_accessible_resources": [
       {
-        "resources": ["icon.png"],
+        "resources": ["button.png"],
         "matches": ["*://*.linkedin.com/*"]
       }
     ]
