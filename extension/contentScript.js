@@ -247,7 +247,6 @@ function updateCommentPlaceholder(newPlaceholder, commentField) {
 // Function to find and fill a specific LinkedIn comment field
 function fillCommentField(text, specificField = null) {
   try {
-    console.log('[AVA.AI] Attempting to fill comment field with:', text);
     
     let commentField = specificField;
     let fieldSource = "specified field";
