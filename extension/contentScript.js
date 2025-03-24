@@ -1,3 +1,24 @@
+// Create a logging utility to centralize and standardize logging
+const Logger = {
+  prefix: '[AVA.AI]',
+  
+  log: function(message, ...args) {
+    console.log(`${this.prefix} ${message}`, ...args);
+  },
+  
+  error: function(message, ...args) {
+    console.error(`${this.prefix} ${message}`, ...args);
+  },
+  
+  warn: function(message, ...args) {
+    console.warn(`${this.prefix} ${message}`, ...args);
+  },
+  
+  info: function(message, ...args) {
+    console.info(`${this.prefix} ${message}`, ...args);
+  },
+};
+
 // Inject the comment assistant button into LinkedIn's UI
 function injectCommentAssistantButton() {
   // Look for comment sections with expanded selectors, but exclude reply boxes
@@ -8,9 +29,7 @@ function injectCommentAssistantButton() {
     'div[role="textbox"][contenteditable="true"]:not(.ql-editor), ' +
     '.ql-editor[contenteditable="true"]:not(.comments-comment-box--reply)'
   );
-  
-  console.log(`[AVA.AI] Found ${commentSections.length} potential main comment sections`);
-  
+    
   commentSections.forEach(section => {
     // Skip if this is a reply box (additional check)
     if (section.closest('.comments-comment-box--reply') || 
@@ -39,51 +58,18 @@ function injectCommentAssistantButton() {
         section.setAttribute('data-assistant-button-added', 'true');
         return;
       }
-      
-      console.log('[AVA.AI] Found actions area for comment section:', actionsArea);
-      
-      // Find the post content for this specific comment section
-      let postContent = "";
-      try {
-        // Find the parent post container
-        const postContainer = section.closest('.feed-shared-update-v2, .feed-shared-update, .occludable-update, .update-components-actor');
-        
-        if (postContainer) {
-          // Try multiple selectors to find the post content within this specific container
-          const postElement = 
-            postContainer.querySelector('.feed-shared-update-v2__description .update-components-text') ||
-            postContainer.querySelector('.update-components-text') ||
-            postContainer.querySelector('.feed-shared-text') ||
-            postContainer.querySelector('.feed-shared-inline-show-more-text');
-          
-          if (postElement && postElement.textContent.trim()) {
-            postContent = postElement.textContent.trim()
-              .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-              .replace(/[\n\r]+/g, ' '); // Replace newlines with space
-            
-            // Limit content length if too long
-            const maxLength = 500;
-            postContent = postContent.length > maxLength 
-              ? postContent.substring(0, maxLength) + '...'
-              : postContent;
-            
-          }
-        }
-      } catch (error) {
-        console.error('[AVA.AI] Error finding post content:', error);
-      }
+                  
+      // Get the post content using the extracted function
+      const postContent = extractPostContent(section);
       
       // Create our button
       const assistantButton = document.createElement('button');
-      assistantButton.className = 'linkedin-comment-assistant-btn artdeco-button artdeco-button--circle artdeco-button--muted artdeco-button--2 artdeco-button--tertiary';
+      assistantButton.className = 'linkedin-comment-assistant-btn';
       assistantButton.title = 'Generate AI Comment';
-      assistantButton.setAttribute('type', 'button');
-      // Use the icon image instead of text
       assistantButton.innerHTML = '<img src="' + chrome.runtime.getURL('button.png') + '" alt="AI" width="32" height="32">';
-      
-      // Store the post content as a data attribute on the button
+      assistantButton.setAttribute('type', 'button');
       assistantButton.setAttribute('data-post-content', postContent);
-      
+            
       // Store a reference to the comment field
       // Find the actual input field within this section
       const inputField = 
@@ -110,17 +96,13 @@ function injectCommentAssistantButton() {
       if (buttonContainer) {
         // Insert at the beginning of the button container
         buttonContainer.prepend(assistantButton);
-      } else {
-        // Fallback to prepending to the actions area
-        actionsArea.prepend(assistantButton);
       }
       
       // Mark the section as having a button
       section.setAttribute('data-assistant-button-added', 'true');
       
-      console.log('[AVA.AI] Successfully injected AI button');
     } else {
-      console.log('[AVA.AI] Could not find actions area for comment section');
+      Logger.error('[AVA.AI] Could not find actions area for comment section');
     }
   });
 }
@@ -166,7 +148,7 @@ function generateComment(buttonElement, commentSection) {
   const postContent = buttonElement.getAttribute('data-post-content');
 
   if (!postContent || postContent === "") {
-    console.error("[AVA.AI] Error: Could not get post content");
+    Logger.error("[AVA.AI] Error: Could not get post content");
     return;
   }
   
@@ -183,7 +165,7 @@ function generateComment(buttonElement, commentSection) {
     try {
       inputField = document.querySelector(targetInputSelector);
     } catch (e) {
-      console.log('[AVA.AI] Error with selector, falling back to other methods:', e);
+      Logger.log('[AVA.AI] Error with selector, falling back to other methods:', e);
     }
   }
   
@@ -206,7 +188,7 @@ function generateComment(buttonElement, commentSection) {
     // Store the input field for later use
     window.currentCommentField = inputField;
   } else {
-    console.error("[AVA.AI] Could not find input field for this button");
+    Logger.error("[AVA.AI] Could not find input field for this button");
   }
   
   // Request comment generation from background script
@@ -217,7 +199,7 @@ function generateComment(buttonElement, commentSection) {
     },
     function(response) {
       if (chrome.runtime.lastError) {
-        console.error("Error: " + chrome.runtime.lastError.message);
+        Logger.error("Error: " + chrome.runtime.lastError.message);
         // Reset placeholder if there was an error
         if (window.currentCommentField) {
           updateCommentPlaceholder("Add a comment…", window.currentCommentField);
@@ -236,10 +218,10 @@ function updateCommentPlaceholder(newPlaceholder, commentField) {
     commentField.setAttribute('data-placeholder', newPlaceholder);
     commentField.setAttribute('aria-placeholder', newPlaceholder);
     
-    console.log(`[AVA.AI] Updated placeholder to: ${newPlaceholder}`);
+    Logger.log(`[AVA.AI] Updated placeholder to: ${newPlaceholder}`);
     return true;
   } catch (error) {
-    console.error('[AVA.AI] Error updating placeholder:', error);
+    Logger.error('[AVA.AI] Error updating placeholder:', error);
     return false;
   }
 }
@@ -247,7 +229,7 @@ function updateCommentPlaceholder(newPlaceholder, commentField) {
 // Function to find and fill a specific LinkedIn comment field
 function fillCommentField(text, specificField = null) {
   try {
-    console.log('[AVA.AI] Attempting to fill comment field with:', text);
+    Logger.log('[AVA.AI] Attempting to fill comment field with:', text);
     
     let commentField = specificField;
     let fieldSource = "specified field";
@@ -270,7 +252,7 @@ function fillCommentField(text, specificField = null) {
          (element.classList.contains('ql-editor') && element.getAttribute('contenteditable') === 'true'));
       
       if (!isCommentField(commentField)) {
-        console.log('[AVA.AI] Active element is not a comment field:', commentField);
+        Logger.log('[AVA.AI] Active element is not a comment field:', commentField);
         
         // If we have a stored button, try to find its input field
         if (window.currentCommentButton) {
@@ -282,7 +264,7 @@ function fillCommentField(text, specificField = null) {
                 fieldSource = "button's target selector";
               }
             } catch (e) {
-              console.log('Error with selector:', e);
+              Logger.log('Error with selector:', e);
             }
           }
         }
@@ -291,7 +273,7 @@ function fillCommentField(text, specificField = null) {
         if (!commentField) {
           // Find all potential comment fields
           const commentFields = document.querySelectorAll('div[role="textbox"][contenteditable="true"], .ql-editor[contenteditable="true"]');
-          console.log(`[AVA.AI] Found ${commentFields.length} potential comment fields`);
+          Logger.log(`[AVA.AI] Found ${commentFields.length} potential comment fields`);
           
           // Try to find the most relevant comment field (visible and near the button)
           const button = window.currentCommentButton || document.querySelector('.linkedin-comment-assistant-btn');
@@ -329,7 +311,7 @@ function fillCommentField(text, specificField = null) {
             
             if (closestField) {
               commentField = closestField;
-              console.log(`[AVA.AI] Using closest comment field (distance: ${closestDistance.toFixed(2)}px)`);
+              Logger.log(`[AVA.AI] Using closest comment field (distance: ${closestDistance.toFixed(2)}px)`);
             }
           }
         }
@@ -343,11 +325,11 @@ function fillCommentField(text, specificField = null) {
     // Double-check that we're not targeting our button
     if (commentField.classList.contains('linkedin-comment-assistant-btn') || 
         commentField.closest('.linkedin-comment-assistant-btn')) {
-      console.error('[AVA.AI] Error: Attempted to use our button as a comment field');
+      Logger.error('[AVA.AI] Error: Attempted to use our button as a comment field');
       return {success: false, error: "Error identifying comment field."};
     }
     
-    console.log(`[AVA.AI] Found comment field (source: ${fieldSource}):`, commentField);
+    Logger.log(`[AVA.AI] Found comment field (source: ${fieldSource}):`, commentField);
     
     // Focus the field first
     commentField.focus();
@@ -358,17 +340,30 @@ function fillCommentField(text, specificField = null) {
     // Trigger input event to ensure LinkedIn registers the change
     commentField.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
     
+    // Move caret to the end of the text - simplified approach
+    // For contentEditable divs, this is the most reliable method
+    const selection = window.getSelection();
+    const range = document.createRange();
+    
+    // Place the range at the end of the content
+    range.selectNodeContents(commentField);
+    range.collapse(false); // false means collapse to end
+    
+    // Apply the range to move the caret
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
     return {success: true};
     
   } catch (error) {
-    console.error("[AVA.AI] Error:", error);
+    Logger.error("[AVA.AI] Error:", error);
     return {success: false, error: error.toString()};
   }
 }
 
 // Set up a MutationObserver to detect when new comment sections are added
 function setupCommentSectionObserver() {
-  console.log('[AVA.AI] Setting up comment section observer');
+  Logger.log('Setting up comment section observer');
   
   // Keep track of when we last injected buttons
   let lastInjectionTime = 0;
@@ -404,7 +399,7 @@ function setupCommentSectionObserver() {
             );
             
             if (hasCommentBox || isCommentBox) {
-              console.log('[AVA.AI] Detected new comment section:', node);
+              Logger.log('[AVA.AI] Detected new comment section:', node);
               shouldInject = true;
             }
           }
@@ -413,7 +408,7 @@ function setupCommentSectionObserver() {
     });
     
     if (shouldInject) {
-      console.log('[AVA.AI] Injecting comment assistant button due to DOM changes');
+      Logger.log('Injecting comment assistant button due to DOM changes');
       injectCommentAssistantButton();
       lastInjectionTime = now;
     }
@@ -429,7 +424,7 @@ function setupCommentSectionObserver() {
 
 // Add click listeners to LinkedIn's comment buttons to trigger our button injection
 function setupCommentButtonListeners() {
-  console.log('[AVA.AI] Setting up comment button listeners');
+  Logger.log('[AVA.AI] Setting up comment button listeners');
   
   // Find all LinkedIn comment buttons
   const commentButtons = document.querySelectorAll(
@@ -442,7 +437,7 @@ function setupCommentButtonListeners() {
   const MAX_BUTTONS = 20;
   let processedCount = 0;
   
-  console.log(`[AVA.AI] Found ${commentButtons.length} LinkedIn comment buttons, processing up to ${MAX_BUTTONS}`);
+  Logger.log(`[AVA.AI] Found ${commentButtons.length} LinkedIn comment buttons, processing up to ${MAX_BUTTONS}`);
   
   for (const button of commentButtons) {
     // Check if we already added a listener to this button
@@ -450,7 +445,7 @@ function setupCommentButtonListeners() {
       button.setAttribute('data-assistant-listener-added', 'true');
       
       button.addEventListener('click', () => {
-        console.log('[AVA.AI] LinkedIn comment button clicked, injecting assistant button');
+        Logger.log('[AVA.AI] LinkedIn comment button clicked, injecting assistant button');
         // Wait a short moment for the comment box to appear
         setTimeout(() => {
           injectCommentAssistantButton();
@@ -459,13 +454,13 @@ function setupCommentButtonListeners() {
       
       processedCount++;
       if (processedCount >= MAX_BUTTONS) {
-        console.log(`[AVA.AI] Reached maximum of ${MAX_BUTTONS} buttons, stopping processing`);
+        Logger.log(`[AVA.AI] Reached maximum of ${MAX_BUTTONS} buttons, stopping processing`);
         break;
       }
     }
   }
   
-  console.log(`[AVA.AI] Added click listeners to ${processedCount} new comment buttons`);
+  Logger.log(`[AVA.AI] Added click listeners to ${processedCount} new comment buttons`);
 }
 
 // Function to periodically check for new comment buttons
@@ -515,7 +510,7 @@ function setupCommentButtonObserver() {
 
 // Initialize when the page is fully loaded
 window.addEventListener('load', () => {
-  console.log('[AVA.AI] LinkedIn Comment Assistant ready');
+  Logger.log('LinkedIn Comment Assistant ready');
   // Set up observers for comment sections and buttons
   setupCommentSectionObserver();
   setupCommentButtonObserver();
@@ -543,15 +538,15 @@ function startPeriodicCheck() {
       // We have buttons, no need to keep checking
       clearInterval(periodicCheckInterval);
       periodicCheckInterval = null;
-      console.log('[AVA.AI] Periodic check stopped - buttons already exist');
+      Logger.log('[AVA.AI] Periodic check stopped - buttons already exist');
     } else if (checkCount >= MAX_CHECKS) {
       // We've tried enough times, stop checking
       clearInterval(periodicCheckInterval);
       periodicCheckInterval = null;
-      console.log('[AVA.AI] Periodic check stopped - max attempts reached');
+      Logger.log('[AVA.AI] Periodic check stopped - max attempts reached');
     } else {
       // Try to inject buttons
-      console.log(`[AVA.AI] Periodic check ${checkCount}/${MAX_CHECKS} - attempting to inject buttons`);
+      Logger.log(`[AVA.AI] Periodic check ${checkCount}/${MAX_CHECKS} - attempting to inject buttons`);
       injectCommentAssistantButton();
       // Also check for comment buttons
       setupCommentButtonListeners();
@@ -564,7 +559,7 @@ startPeriodicCheck();
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.action === "commentStreamUpdate") {
     if (message.error) {
-      console.error("[AVA.AI] Error generating comment:", message.error);
+      Logger.error("[AVA.AI] Error generating comment:", message.error);
       return;
     }
     // Update the comment field with the current accumulated text
@@ -572,3 +567,37 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     fillCommentField(message.comment, window.currentCommentField);
   }
 });
+
+// Function to extract post content from a comment section's parent post
+function extractPostContent(section) {
+  let postContent = "";
+  try {
+    // Find the parent post container
+    const postContainer = section.closest('.feed-shared-update-v2, .feed-shared-update, .occludable-update, .update-components-actor');
+    
+    if (postContainer) {
+      // Try multiple selectors to find the post content within this specific container
+      const postElement = 
+        postContainer.querySelector('.feed-shared-update-v2__description .update-components-text') ||
+        postContainer.querySelector('.update-components-text') ||
+        postContainer.querySelector('.feed-shared-text') ||
+        postContainer.querySelector('.feed-shared-inline-show-more-text');
+      
+      if (postElement && postElement.textContent.trim()) {
+        postContent = postElement.textContent.trim()
+          .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+          .replace(/[\n\r]+/g, ' '); // Replace newlines with space
+        
+        // Limit content length if too long
+        const maxLength = 500;
+        postContent = postContent.length > maxLength 
+          ? postContent.substring(0, maxLength) + '...'
+          : postContent;
+      }
+    }
+  } catch (error) {
+    Logger.error('[AVA.AI] Error finding post content:', error);
+  }
+  
+  return postContent;
+}
