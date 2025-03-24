@@ -3,7 +3,7 @@ const DEV_URL = "http://localhost:5000";
 const PROD_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com";
 
 // Set to true for development, false for production
-const IS_DEVELOPMENT = false;
+const IS_DEVELOPMENT = true;
 
 const BACKEND_URL = IS_DEVELOPMENT ? DEV_URL : PROD_URL;
 

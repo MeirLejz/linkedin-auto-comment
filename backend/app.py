@@ -5,11 +5,17 @@ from openai import OpenAI
 import json
 from flask import stream_with_context
 
+IS_DEVELOPMENT = True
 
 app = Flask(__name__)
 
 # Configure CORS globally
 CORS(app, origins="*", supports_credentials=True)
+
+if IS_DEVELOPMENT:
+    # Load API key from .env file
+    from dotenv import load_dotenv
+    load_dotenv()
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
