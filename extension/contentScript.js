@@ -100,9 +100,11 @@ function injectCommentAssistantButton() {
       
       // Mark the section as having a button
       section.setAttribute('data-assistant-button-added', 'true');
+
+      Logger.log('[INJECTION] Successfully injected comment assistant button');
       
     } else {
-      Logger.error('[AVA.AI] Could not find actions area for comment section');
+      Logger.error('Could not find actions area for comment section');
     }
   });
 }
@@ -399,7 +401,6 @@ function setupCommentSectionObserver() {
             );
             
             if (hasCommentBox || isCommentBox) {
-              Logger.log('[AVA.AI] Detected new comment section:', node);
               shouldInject = true;
             }
           }
@@ -408,7 +409,7 @@ function setupCommentSectionObserver() {
     });
     
     if (shouldInject) {
-      Logger.log('Injecting comment assistant button due to DOM changes');
+      Logger.log('[setupCommentSectionObserver] Trying to inject comment assistant button');
       injectCommentAssistantButton();
       lastInjectionTime = now;
     }
@@ -418,13 +419,13 @@ function setupCommentSectionObserver() {
   observer.observe(document.body, { childList: true, subtree: true });
   
   // Also inject buttons for any existing comment sections
-  injectCommentAssistantButton();
+  //Logger.log('[setupCommentSectionObserver] Trying to inject comment assistant button into existing comment sections');
+  //injectCommentAssistantButton();
   lastInjectionTime = Date.now();
 }
 
 // Add click listeners to LinkedIn's comment buttons to trigger our button injection
 function setupCommentButtonListeners() {
-  Logger.log('[AVA.AI] Setting up comment button listeners');
   
   // Find all LinkedIn comment buttons
   const commentButtons = document.querySelectorAll(
@@ -437,30 +438,30 @@ function setupCommentButtonListeners() {
   const MAX_BUTTONS = 20;
   let processedCount = 0;
   
-  Logger.log(`[AVA.AI] Found ${commentButtons.length} LinkedIn comment buttons, processing up to ${MAX_BUTTONS}`);
+  //Logger.log(`Found ${commentButtons.length} LinkedIn comment buttons, processing up to ${MAX_BUTTONS}`);
   
   for (const button of commentButtons) {
     // Check if we already added a listener to this button
     if (!button.hasAttribute('data-assistant-listener-added')) {
       button.setAttribute('data-assistant-listener-added', 'true');
-      
+      /*
       button.addEventListener('click', () => {
-        Logger.log('[AVA.AI] LinkedIn comment button clicked, injecting assistant button');
+        Logger.log('[setupCommentButtonListeners] LinkedIn comment button clicked, injecting assistant button');
         // Wait a short moment for the comment box to appear
         setTimeout(() => {
           injectCommentAssistantButton();
         }, 300);
       });
-      
+      */
       processedCount++;
       if (processedCount >= MAX_BUTTONS) {
-        Logger.log(`[AVA.AI] Reached maximum of ${MAX_BUTTONS} buttons, stopping processing`);
+        //Logger.log(`Reached maximum of ${MAX_BUTTONS} buttons, stopping processing`);
         break;
       }
     }
   }
   
-  Logger.log(`[AVA.AI] Added click listeners to ${processedCount} new comment buttons`);
+  //Logger.log(`Added click listeners to ${processedCount} new comment buttons`);
 }
 
 // Function to periodically check for new comment buttons
@@ -514,47 +515,7 @@ window.addEventListener('load', () => {
   // Set up observers for comment sections and buttons
   setupCommentSectionObserver();
   setupCommentButtonObserver();
-});
-
-// Add a periodic check to catch any missed comment sections, but with a longer interval
-// and only if no buttons exist yet
-let periodicCheckInterval = null;
-
-function startPeriodicCheck() {
-  if (periodicCheckInterval) {
-    clearInterval(periodicCheckInterval);
-  }
-  
-  let checkCount = 0;
-  const MAX_CHECKS = 10; // Only try 10 times
-  
-  periodicCheckInterval = setInterval(() => {
-    checkCount++;
-    
-    // Check if we already have buttons
-    const existingButtons = document.querySelectorAll('.linkedin-comment-assistant-btn');
-    
-    if (existingButtons.length > 0) {
-      // We have buttons, no need to keep checking
-      clearInterval(periodicCheckInterval);
-      periodicCheckInterval = null;
-      Logger.log('[AVA.AI] Periodic check stopped - buttons already exist');
-    } else if (checkCount >= MAX_CHECKS) {
-      // We've tried enough times, stop checking
-      clearInterval(periodicCheckInterval);
-      periodicCheckInterval = null;
-      Logger.log('[AVA.AI] Periodic check stopped - max attempts reached');
-    } else {
-      // Try to inject buttons
-      Logger.log(`[AVA.AI] Periodic check ${checkCount}/${MAX_CHECKS} - attempting to inject buttons`);
-      injectCommentAssistantButton();
-      // Also check for comment buttons
-      setupCommentButtonListeners();
-    }
-  }, 3000);
-}
-
-//startPeriodicCheck();
+})
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.action === "commentStreamUpdate") {
