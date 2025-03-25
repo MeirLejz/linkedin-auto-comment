@@ -1,26 +1,6 @@
 .linkedin-comment-assistant-btn {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  position: relative;
   margin-left: 4px;
   padding: 0;
-  width: 32px;
-  height: 32px;
-}
-
-.linkedin-comment-assistant-btn:hover {
-  background-color: rgba(0, 0, 0, 0.08);
-}
-
-.linkedin-comment-assistant-btn:active {
-  background-color: rgba(0, 0, 0, 0.12);
-  transform: scale(0.95);
 }
 
 .linkedin-comment-assistant-btn img {
@@ -28,3 +8,5 @@
   width: 20px;
   height: 20px;
 }
+
+/* The hover effects will now be handled by LinkedIn's artdeco-button classes */
