@@ -19,6 +19,22 @@ const Logger = {
   },
 };
 
+// LinkedIn DOM selectors - centralized for easier maintenance
+const LINKEDIN_SELECTORS = {
+  // Post container selector
+  POST_CONTAINER: '.feed-shared-update-v2',
+  
+  // Post content selector
+  POST_CONTENT: '.feed-shared-update-v2__description .update-components-text',
+  
+  // Comment section selectors
+  COMMENT_SECTIONS: '.comments-comment-box:not(.comments-comment-box--reply), ' + 
+    '.comments-comment-texteditor:not(.comments-comment-box--reply), ' + 
+    'div[data-test-id="comments-comment-box"]:not(.comments-comment-box--reply), ' +
+    'div[role="textbox"][contenteditable="true"]:not(.ql-editor), ' +
+    '.ql-editor[contenteditable="true"]:not(.comments-comment-box--reply)'
+};
+
 // Inject the comment assistant button into LinkedIn's UI
 function injectCommentAssistantButton() {
   // Look for comment sections with expanded selectors, but exclude reply boxes
@@ -100,8 +116,6 @@ function injectCommentAssistantButton() {
       
       // Mark the section as having a button
       section.setAttribute('data-assistant-button-added', 'true');
-
-      Logger.log('[INJECTION] Successfully injected comment assistant button');
       
     } else {
       Logger.error('Could not find actions area for comment section');
@@ -167,7 +181,7 @@ function generateComment(buttonElement, commentSection) {
     try {
       inputField = document.querySelector(targetInputSelector);
     } catch (e) {
-      Logger.log('[AVA.AI] Error with selector, falling back to other methods:', e);
+      Logger.error('Error with selector, falling back to other methods:', e);
     }
   }
   
@@ -220,10 +234,9 @@ function updateCommentPlaceholder(newPlaceholder, commentField) {
     commentField.setAttribute('data-placeholder', newPlaceholder);
     commentField.setAttribute('aria-placeholder', newPlaceholder);
     
-    Logger.log(`[AVA.AI] Updated placeholder to: ${newPlaceholder}`);
     return true;
   } catch (error) {
-    Logger.error('[AVA.AI] Error updating placeholder:', error);
+    Logger.error('Error updating placeholder:', error);
     return false;
   }
 }
@@ -266,7 +279,6 @@ function fillCommentField(text, specificField = null) {
 
 // Set up a MutationObserver to detect when new comment sections are added
 function setupCommentSectionObserver() {
-  Logger.log('Setting up comment section observer');
   
   // Keep track of when we last injected buttons
   let lastInjectionTime = 0;
@@ -310,7 +322,6 @@ function setupCommentSectionObserver() {
     });
     
     if (shouldInject) {
-      Logger.log('[setupCommentSectionObserver] Trying to inject comment assistant button');
       injectCommentAssistantButton();
       lastInjectionTime = now;
     }
@@ -324,16 +335,14 @@ function setupCommentSectionObserver() {
 
 // Initialize when the page is fully loaded
 window.addEventListener('load', () => {
-  Logger.log('LinkedIn Comment Assistant ready');
   // Set up observers for comment sections and buttons
   setupCommentSectionObserver();
-  //setupCommentButtonObserver();
 })
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.action === "commentStreamUpdate") {
     if (message.error) {
-      Logger.error("[AVA.AI] Error generating comment:", message.error);
+      Logger.error("Error generating comment:", message.error);
       return;
     }
     // Update the comment field with the current accumulated text
@@ -347,15 +356,11 @@ function extractPostContent(section) {
   let postContent = "";
   try {
     // Find the parent post container
-    const postContainer = section.closest('.feed-shared-update-v2, .feed-shared-update, .occludable-update, .update-components-actor');
+    const postContainer = section.closest(LINKEDIN_SELECTORS.POST_CONTAINER);
     
     if (postContainer) {
-      // Try multiple selectors to find the post content within this specific container
-      const postElement = 
-        postContainer.querySelector('.feed-shared-update-v2__description .update-components-text') ||
-        postContainer.querySelector('.update-components-text') ||
-        postContainer.querySelector('.feed-shared-text') ||
-        postContainer.querySelector('.feed-shared-inline-show-more-text');
+      // Find the post content element
+      const postElement = postContainer.querySelector(LINKEDIN_SELECTORS.POST_CONTENT);
       
       if (postElement && postElement.textContent.trim()) {
         postContent = postElement.textContent.trim()
@@ -363,14 +368,14 @@ function extractPostContent(section) {
           .replace(/[\n\r]+/g, ' '); // Replace newlines with space
         
         // Limit content length if too long
-        const maxLength = 500;
+        const maxLength = 3000;
         postContent = postContent.length > maxLength 
           ? postContent.substring(0, maxLength) + '...'
           : postContent;
       }
     }
   } catch (error) {
-    Logger.error('[AVA.AI] Error finding post content:', error);
+    Logger.error('Error finding post content:', error);
   }
   
   return postContent;
