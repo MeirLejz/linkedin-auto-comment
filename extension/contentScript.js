@@ -231,107 +231,8 @@ function updateCommentPlaceholder(newPlaceholder, commentField) {
 // Function to find and fill a specific LinkedIn comment field
 function fillCommentField(text, specificField = null) {
   try {
-    Logger.log('[AVA.AI] Attempting to fill comment field with:', text);
     
     let commentField = specificField;
-    let fieldSource = "specified field";
-    
-    // If no specific field was provided, try to use the stored field
-    if (!commentField && window.currentCommentField) {
-      commentField = window.currentCommentField;
-      fieldSource = "stored field";
-    }
-    
-    // If we still don't have a field, try to use the active element
-    if (!commentField) {
-      commentField = document.activeElement;
-      fieldSource = "active element";
-      
-      // Check if the active element is actually a comment field
-      const isCommentField = element => 
-        element && 
-        ((element.getAttribute('role') === 'textbox' && element.getAttribute('contenteditable') === 'true') ||
-         (element.classList.contains('ql-editor') && element.getAttribute('contenteditable') === 'true'));
-      
-      if (!isCommentField(commentField)) {
-        Logger.log('[AVA.AI] Active element is not a comment field:', commentField);
-        
-        // If we have a stored button, try to find its input field
-        if (window.currentCommentButton) {
-          const targetSelector = window.currentCommentButton.getAttribute('data-target-input-selector');
-          if (targetSelector) {
-            try {
-              commentField = document.querySelector(targetSelector);
-              if (commentField) {
-                fieldSource = "button's target selector";
-              }
-            } catch (e) {
-              Logger.log('Error with selector:', e);
-            }
-          }
-        }
-        
-        // If we still don't have a field, fall back to the old method
-        if (!commentField) {
-          // Find all potential comment fields
-          const commentFields = document.querySelectorAll('div[role="textbox"][contenteditable="true"], .ql-editor[contenteditable="true"]');
-          Logger.log(`[AVA.AI] Found ${commentFields.length} potential comment fields`);
-          
-          // Try to find the most relevant comment field (visible and near the button)
-          const button = window.currentCommentButton || document.querySelector('.linkedin-comment-assistant-btn');
-          
-          if (button && commentFields.length > 0) {
-            fieldSource = "closest to button";
-            const buttonRect = button.getBoundingClientRect();
-            
-            // Find the closest visible comment field to our button
-            let closestDistance = Infinity;
-            let closestField = null;
-            
-            commentFields.forEach((field, index) => {
-              // Skip if this is our button
-              if (field === button || field.contains(button) || button.contains(field)) {
-                return;
-              }
-              
-              const fieldRect = field.getBoundingClientRect();
-              
-              // Check if the field is visible
-              if (fieldRect.height > 0 && fieldRect.width > 0) {
-                // Calculate distance between field and button
-                const distance = Math.sqrt(
-                  Math.pow(buttonRect.left - fieldRect.left, 2) + 
-                  Math.pow(buttonRect.top - fieldRect.top, 2)
-                );
-                
-                if (distance < closestDistance) {
-                  closestDistance = distance;
-                  closestField = field;
-                }
-              }
-            });
-            
-            if (closestField) {
-              commentField = closestField;
-              Logger.log(`[AVA.AI] Using closest comment field (distance: ${closestDistance.toFixed(2)}px)`);
-            }
-          }
-        }
-      }
-    }
-    
-    if (!commentField) {
-      return {success: false, error: "No comment field found. Click on a comment box first."};
-    }
-    
-    // Double-check that we're not targeting our button
-    if (commentField.classList.contains('linkedin-comment-assistant-btn') || 
-        commentField.closest('.linkedin-comment-assistant-btn')) {
-      Logger.error('[AVA.AI] Error: Attempted to use our button as a comment field');
-      return {success: false, error: "Error identifying comment field."};
-    }
-    
-    Logger.log(`[AVA.AI] Found comment field (source: ${fieldSource}):`, commentField);
     
     // Focus the field first
     commentField.focus();
@@ -418,95 +319,7 @@ function setupCommentSectionObserver() {
   // Start observing the document with the configured parameters
   observer.observe(document.body, { childList: true, subtree: true });
   
-  // Also inject buttons for any existing comment sections
-  //Logger.log('[setupCommentSectionObserver] Trying to inject comment assistant button into existing comment sections');
-  //injectCommentAssistantButton();
   lastInjectionTime = Date.now();
-}
-
-// Add click listeners to LinkedIn's comment buttons to trigger our button injection
-function setupCommentButtonListeners() {
-  
-  // Find all LinkedIn comment buttons
-  const commentButtons = document.querySelectorAll(
-    'button.social-actions__comment, ' +
-    'button[aria-label*="comment"], ' +
-    'button[data-control-name="comment"]'
-  );
-  
-  // Limit the number of buttons we process to avoid performance issues
-  const MAX_BUTTONS = 20;
-  let processedCount = 0;
-  
-  //Logger.log(`Found ${commentButtons.length} LinkedIn comment buttons, processing up to ${MAX_BUTTONS}`);
-  
-  for (const button of commentButtons) {
-    // Check if we already added a listener to this button
-    if (!button.hasAttribute('data-assistant-listener-added')) {
-      button.setAttribute('data-assistant-listener-added', 'true');
-      /*
-      button.addEventListener('click', () => {
-        Logger.log('[setupCommentButtonListeners] LinkedIn comment button clicked, injecting assistant button');
-        // Wait a short moment for the comment box to appear
-        setTimeout(() => {
-          injectCommentAssistantButton();
-        }, 300);
-      });
-      */
-      processedCount++;
-      if (processedCount >= MAX_BUTTONS) {
-        //Logger.log(`Reached maximum of ${MAX_BUTTONS} buttons, stopping processing`);
-        break;
-      }
-    }
-  }
-  
-  //Logger.log(`Added click listeners to ${processedCount} new comment buttons`);
-}
-
-// Function to periodically check for new comment buttons
-function setupCommentButtonObserver() {
-  // Keep track of the last time we checked for buttons
-  let lastCheckTime = 0;
-  const CHECK_COOLDOWN = 2000; // 2 second cooldown
-  
-  // Create a MutationObserver to watch for new comment buttons
-  const observer = new MutationObserver((mutations) => {
-    // Check if we're within the cooldown period
-    const now = Date.now();
-    if (now - lastCheckTime < CHECK_COOLDOWN) {
-      return;
-    }
-    
-    // Check if any mutations contain potential comment buttons
-    let shouldCheck = false;
-    for (const mutation of mutations) {
-      if (mutation.addedNodes.length) {
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            // Check if this node or its children might contain comment buttons
-            if (node.querySelector('button') || node.tagName === 'BUTTON') {
-              shouldCheck = true;
-              break;
-            }
-          }
-        }
-        if (shouldCheck) break;
-      }
-    }
-    
-    if (shouldCheck) {
-      setupCommentButtonListeners();
-      lastCheckTime = now;
-    }
-  });
-  
-  // Start observing the document for new buttons
-  observer.observe(document.body, { childList: true, subtree: true });
-  
-  // Also set up listeners for any existing buttons
-  setupCommentButtonListeners();
-  lastCheckTime = Date.now();
 }
 
 // Initialize when the page is fully loaded
@@ -514,7 +327,7 @@ window.addEventListener('load', () => {
   Logger.log('LinkedIn Comment Assistant ready');
   // Set up observers for comment sections and buttons
   setupCommentSectionObserver();
-  setupCommentButtonObserver();
+  //setupCommentButtonObserver();
 })
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
