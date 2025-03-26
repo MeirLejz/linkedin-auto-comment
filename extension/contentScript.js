@@ -27,55 +27,51 @@ const LINKEDIN_SELECTORS = {
   // Post content selector
   POST_CONTENT: '.feed-shared-update-v2__description .update-components-text',
   
-  // Comment section selectors
-  COMMENT_SECTIONS: '.comments-comment-box:not(.comments-comment-box--reply), ' + 
-    '.comments-comment-texteditor:not(.comments-comment-box--reply), ' + 
-    'div[data-test-id="comments-comment-box"]:not(.comments-comment-box--reply), ' +
-    'div[role="textbox"][contenteditable="true"]:not(.ql-editor), ' +
-    '.ql-editor[contenteditable="true"]:not(.comments-comment-box--reply)'
+  // Comment section selectors - we need both as they can appear in different contexts
+  COMMENT_SECTIONS: '.comments-comment-texteditor:not(.comments-comment-box--reply), ' + 
+                    '.ql-editor[contenteditable="true"]:not(.comments-comment-box--reply)',
+  
+  // Actions area selector
+  ACTIONS_AREA: '.comments-comment-texteditor .display-flex',
+  
+  // Button container selector
+  BUTTON_CONTAINER: '.display-flex:not(.justify-space-between)',
+  
+  // Input field selectors will be determined dynamically
+  
+  // Reply box selector (for exclusion)
+  REPLY_BOX: '.comments-comment-box--reply'
 };
 
 // Inject the comment assistant button into LinkedIn's UI
 function injectCommentAssistantButton() {
-  // Look for comment sections with expanded selectors, but exclude reply boxes
-  const commentSections = document.querySelectorAll(
-    '.comments-comment-box:not(.comments-comment-box--reply), ' + 
-    '.comments-comment-texteditor:not(.comments-comment-box--reply), ' + 
-    'div[data-test-id="comments-comment-box"]:not(.comments-comment-box--reply), ' +
-    'div[role="textbox"][contenteditable="true"]:not(.ql-editor), ' +
-    '.ql-editor[contenteditable="true"]:not(.comments-comment-box--reply)'
-  );
-    
-  commentSections.forEach(section => {
+  // Look for comment sections with the selectors we know work
+  const commentSections = document.querySelectorAll(LINKEDIN_SELECTORS.COMMENT_SECTIONS);
+      
+  commentSections.forEach((section, index) => {
     // Skip if this is a reply box (additional check)
-    if (section.closest('.comments-comment-box--reply') || 
-        section.parentElement?.closest('.comments-comment-box--reply')) {
+    if (section.closest(LINKEDIN_SELECTORS.REPLY_BOX) || 
+        section.parentElement?.closest(LINKEDIN_SELECTORS.REPLY_BOX)) {
       return;
     }
 
-    // Check if we already added a button to this section using a data attribute
+    // Check if we already added a button to this section
     if (section.hasAttribute('data-assistant-button-added')) {
       return;
     }
     
-    // Find the actions area (usually near the comment button)
-    // Expanded selector list to catch more UI variations
-    const actionsArea = 
-      section.querySelector('.comments-comment-box__controls-actions') || 
-      section.querySelector('.comments-comment-texteditor__actions') ||
-      section.closest('form')?.querySelector('[type="submit"]')?.parentElement ||
-      section.closest('.comments-comment-box')?.querySelector('.display-flex') ||
-      section.closest('.comments-comment-texteditor')?.querySelector('.display-flex');
+    // Find the actions area based on the selector that worked
+    const editor = section.closest('.comments-comment-texteditor');
+    const actionsArea = editor ? editor.querySelector('.display-flex') : null;
     
     if (actionsArea) {
       // Check if this actions area already has our button
       if (actionsArea.querySelector('.linkedin-comment-assistant-btn')) {
-        // Mark the section as having a button
         section.setAttribute('data-assistant-button-added', 'true');
         return;
       }
                   
-      // Get the post content using the extracted function
+      // Get the post content
       const postContent = extractPostContent(section);
       
       // Create our button
@@ -86,28 +82,31 @@ function injectCommentAssistantButton() {
       assistantButton.setAttribute('type', 'button');
       assistantButton.setAttribute('data-post-content', postContent);
             
-      // Store a reference to the comment field
-      // Find the actual input field within this section
-      const inputField = 
-        section.querySelector('div[role="textbox"][contenteditable="true"]') || 
-        section.querySelector('.ql-editor[contenteditable="true"]') ||
-        (section.getAttribute('role') === 'textbox' ? section : null);
+      // Find the input field - we'll determine this dynamically since it varies
+      let inputField = null;
+      
+      // If the section itself is the input field (for ql-editor)
+      if (section.getAttribute('contenteditable') === 'true') {
+        inputField = section;
+      } else {
+        // Otherwise look for the input field within the section
+        inputField = section.querySelector('div[role="textbox"][contenteditable="true"]');
+      }
       
       if (inputField) {
-        // Also store the input field's selector path for more reliable retrieval
+        // Store the input field's selector path for more reliable retrieval
         assistantButton.setAttribute('data-target-input-selector', getElementSelector(inputField));
       }
       
-      // Add click handler to directly generate comment
+      // Add click handler
       assistantButton.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
         generateComment(event.currentTarget, section);
       });
       
-      // Find the emoji button container or the detour container to insert our button next to
-      const buttonContainer = actionsArea.querySelector('.display-flex:not(.justify-space-between)') || 
-                              actionsArea.querySelector('.display-flex');
+      // Find the button container
+      const buttonContainer = actionsArea.querySelector(LINKEDIN_SELECTORS.BUTTON_CONTAINER);
       
       if (buttonContainer) {
         // Insert at the beginning of the button container
