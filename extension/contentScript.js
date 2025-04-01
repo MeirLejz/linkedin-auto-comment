@@ -163,7 +163,7 @@ function generateComment(buttonElement, commentSection) {
   const postContent = buttonElement.getAttribute('data-post-content');
 
   if (!postContent || postContent === "") {
-    Logger.error("[AVA.AI] Error: Could not get post content");
+    Logger.error("Error: Could not get post content");
     return;
   }
   

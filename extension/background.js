@@ -1,18 +1,49 @@
+import { supabase } from './supabase-config.js';
+
 // Backend URL Configuration
 const DEV_URL = "http://localhost:5000";
 const PROD_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com";
 
 // Set to true for development, false for production
 const IS_DEVELOPMENT = false;
-
 const BACKEND_URL = IS_DEVELOPMENT ? DEV_URL : PROD_URL;
-
 console.log(`Using backend URL: ${BACKEND_URL} (${IS_DEVELOPMENT ? 'Development' : 'Production'} mode)`);
+
+// Auth state listener
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN') {
+    chrome.action.setBadgeText({ text: 'ON' });
+    chrome.storage.local.set({ session });
+  }
+  if (event === 'SIGNED_OUT') {
+    chrome.action.setBadgeText({ text: '' });
+    chrome.storage.local.remove('session');
+  }
+});
+
+// Session recovery
+chrome.runtime.onStartup.addListener(async () => {
+  const { session } = await chrome.storage.local.get('session');
+  if (session) {
+    await supabase.auth.setSession(session);
+  }
+});
+
+async function validateSession(session) {
+  const { data, error } = await supabase.auth.getUser(session.access_token);
+  if (error) throw new Error('Invalid session');
+  return data.user;
+}
 
 // Listen for messages from popup and content script
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   console.log("Message received:", request.action, request);
   
+  // Handle session management
+  if (request.action === "storeSession") {
+    chrome.storage.local.set({ session: request.session });
+  }
+
   // Handle comment generation
   if (request.action === "generateComment") {
     console.log("Generate comment request received");

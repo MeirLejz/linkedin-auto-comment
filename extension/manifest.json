@@ -3,7 +3,11 @@
     "name": "LinkedIn Comment Assistant",
     "version": "2.0",
     "description": "Generate and pre-fill LinkedIn comments using ChatGPT",
-    "permissions": [],
+    "permissions": ["identity", "storage", "scripting"],
+    "oauth2": {
+      "client_id": "118805678425-eogcdbpgaefjv6rdptg5ipg41ahd0ene.apps.googleusercontent.com",
+      "scopes": ["openid", "email", "profile"]
+    },
     "background": {
       "service_worker": "background.js"
     },
@@ -27,6 +31,13 @@
       {
         "resources": ["button.png"],
         "matches": ["*://*.linkedin.com/*"]
+      },
+      {
+        "resources": ["auth.html"],
+        "matches": ["https://*.supabase.co/*"]
       }
-    ]
+    ],
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://accounts.google.com  https://*.supabase.co https://apis.google.com https://www.gstatic.com https://www.googleapis.com https://securetoken.googleapis.com"
+    }
 }

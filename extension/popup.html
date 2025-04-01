@@ -1,38 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LinkedIn Comment Assistant</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      width: 320px;
-      padding: 12px;
-    }
-    h2 {
-      color: #9700b5;
-      margin-top: 0;
-      font-size: 16px;
-    }
-    .section {
-      margin-bottom: 15px;
-    }
-    .info-text {
-      font-size: 13px;
-      color: #333;
-      margin: 15px 0;
-      line-height: 1.4;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="./supabase-config.js" type="module"></script>
+  <script src="popup.js" type="module"></script>
 </head>
 <body>
-  <h2>LinkedIn Comment Assistant</h2>
-  
-  <div class="info-text">
-    AVA.ai is a tool that helps you generate AI comments for LinkedIn posts. Click the "A" button to generate a comment.
-  </div>
-  
-  <script src="popup.js"></script>
+  <button id="signInButton">Sign in with Google</button>
+  <button id="signOutButton" style="display:none;">Sign Out</button>
+  <div id="userInfo"></div>
 </body>
 </html>

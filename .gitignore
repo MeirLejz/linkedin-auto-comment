@@ -1,3 +1,4 @@
 .env 
 venv/ 
 release/
+node_modules/
