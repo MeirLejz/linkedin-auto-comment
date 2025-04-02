@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="./supabase-config.js" type="module"></script>
-  <script src="popup.js" type="module"></script>
+    <title>Supabase Auth</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 250px;
+            padding: 10px;
+        }
+        button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
-  <button id="signInButton">Sign in with Google</button>
-  <button id="signOutButton" style="display:none;">Sign Out</button>
-  <div id="userInfo"></div>
+    <h1>Supabase Auth</h1>
+    <button id="signInButton">Sign in with Google</button>
+    <div id="status"></div>
+    <script src="popup.js"></script>
 </body>
 </html>
