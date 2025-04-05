@@ -5,7 +5,7 @@ const url = new URL('https://accounts.google.com/o/oauth2/auth')
 url.searchParams.set('client_id', manifest.oauth2.client_id)
 url.searchParams.set('response_type', 'id_token')
 url.searchParams.set('access_type', 'offline')
-url.searchParams.set('redirect_uri', `https://${chrome.runtime.id}.chromiumapp.org`)
+url.searchParams.set('redirect_uri', `https://oociehonanngbcampmpnoaoddafapbjg.chromiumapp.org`)
 url.searchParams.set('scope', manifest.oauth2.scopes.join(' '))
 
 console.log('Auth URL:', url.href); // Debugging

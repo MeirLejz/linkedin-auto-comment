@@ -5,7 +5,7 @@
     "description": "Generate and pre-fill LinkedIn comments using ChatGPT",
     "permissions": ["identity", "storage", "scripting"],
     "oauth2": {
-      "client_id": "118805678425-eogcdbpgaefjv6rdptg5ipg41ahd0ene.apps.googleusercontent.com",
+      "client_id": "715880668270-4usol1tusuhfa6n0usk0gobumj3vknrh.apps.googleusercontent.com",
       "scopes": ["openid", "email", "profile"]
     },
     "background": {
