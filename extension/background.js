@@ -21,7 +21,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     "startAuthFlow": handleStartAuthFlow,
     "checkAuthStatus": handleCheckAuthStatus,
     "signOut": handleSignOut,
-    "generateComment": handleGenerateComment
+    "generateComment": handleGenerateComment,
+    "getRequestCount": handleGetRequestCount
   };
 
   // Call the appropriate handler if it exists
@@ -67,10 +68,25 @@ function handleGenerateComment(request, sender, sendResponse) {
       return;
     }
     
-    // User is authenticated, proceed with comment generation
+    // Proceed with comment generation
     console.log("Generate comment request received");
     streamComment(request.postContent, sender.tab.id, sendResponse);
+
+    // User is authenticated, increment request count
+    const user = await getCurrentUser();
+    if (user && user.id) {
+      incrementUserRequestCount(user.id).catch(err => 
+        console.error('Error incrementing request count:', err)
+      );
+    }
+    
   })();
+}
+
+function handleGetRequestCount(request, sender, sendResponse) {
+  getUserRequestCount()
+    .then(count => sendResponse({ success: true, count: count }))
+    .catch(error => sendResponse({ success: false, error: error.message }));
 }
 
 // Function to handle the OAuth authentication flow
@@ -331,5 +347,48 @@ async function signOutUser() {
   } catch (error) {
     console.error('Error signing out:', error);
     return { success: false, error: error.message };
+  }
+}
+
+// Function to increment user request count in Supabase
+async function incrementUserRequestCount(userId) {
+  try {
+    const { error } = await supabase.rpc('increment_user_request_count', {
+      user_uuid: userId
+    });
+    
+    if (error) {
+      console.error('Error incrementing request count:', error);
+    } else {
+      console.log('Request count incremented successfully');
+    }
+  } catch (error) {
+    console.error('Error calling increment function:', error);
+  }
+}
+
+// Function to get user request count
+async function getUserRequestCount() {
+  try {
+    const user = await getCurrentUser();
+    if (!user || !user.id) {
+      return 0; // Return 0 instead of null if user is not found
+    }
+    
+    const { data, error } = await supabase
+      .from('user_requests')
+      .select('request_count')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching request count:', error);
+      return 0; // Return 0 instead of null on error
+    }
+    
+    return data?.request_count || 0; // Return request_count or 0 if undefined
+  } catch (error) {
+    console.error('Error getting request count:', error);
+    return 0; // Return 0 instead of null on catch
   }
 }

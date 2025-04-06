@@ -29,6 +29,11 @@
             margin-top: 10px;
             font-size: 12px;
         }
+        #requestCount {
+            margin-top: 10px;
+            font-size: 12px;
+            display: none; /* Hidden by default */
+        }
     </style>
 </head>
 <body>
@@ -36,6 +41,7 @@
     <button id="signInButton">Sign in with Google</button>
     <button id="signOutButton">Sign Out</button>
     <div id="status">Checking authentication status...</div>
+    <div id="requestCount"></div>
     <script src="popup.js"></script>
 </body>
 </html>

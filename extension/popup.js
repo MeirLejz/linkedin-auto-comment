@@ -14,14 +14,40 @@ document.addEventListener('DOMContentLoaded', () => {
       statusElement.textContent = `Signed in as ${response.email || 'User'}`;
       signInButton.style.display = 'none';
       signOutButton.style.display = 'block';
+      
+      // Get and display request count
+      displayRequestCount();
     } else {
       // User is not authenticated
       statusElement.textContent = 'Not signed in';
       signInButton.style.display = 'block';
       signOutButton.style.display = 'none';
+      
+      // Hide request count if any
+      const requestCountElement = document.getElementById('requestCount');
+      if (requestCountElement) {
+        requestCountElement.style.display = 'none';
+      }
     }
   });
 });
+
+// Function to get and display request count
+function displayRequestCount() {
+  chrome.runtime.sendMessage({ action: 'getRequestCount' }, (response) => {
+    // Create or get the request count element
+    let requestCountElement = document.getElementById('requestCount');
+
+    // Display the count
+    if (response && response.success) {
+      requestCountElement.textContent = `Comments generated: ${response.count || 0}`;
+      requestCountElement.style.display = 'block';
+    } else {
+      requestCountElement.textContent = 'Unable to load usage data';
+      requestCountElement.style.display = 'block';
+    }
+  });
+}
 
 // Listen for the sign in button click
 document.getElementById('signInButton').addEventListener('click', () => {
