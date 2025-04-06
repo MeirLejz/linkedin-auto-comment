@@ -21,6 +21,10 @@
             cursor: pointer;
             border-radius: 5px;
         }
+        #signOutButton {
+            background-color: #f44336; /* Red */
+            display: none; /* Hidden by default */
+        }
         #status {
             margin-top: 10px;
             font-size: 12px;
@@ -30,7 +34,7 @@
 <body>
     <h1>Supabase Auth</h1>
     <button id="signInButton">Sign in with Google</button>
-    <div id="status"></div>
+    <div id="status">Checking authentication status...</div>
     <script src="popup.js"></script>
 </body>
 </html>

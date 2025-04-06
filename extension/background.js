@@ -1,11 +1,4 @@
-/*
-import { createClient } from 'https://unpkg.com/@supabase/supabase-js@2'
-
-const SUPABASE_URL = 'https://hzhuqrztsisuwjilobiv.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6aHVxcnp0c2lzdXdqaWxvYml2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzA3MTQsImV4cCI6MjA1OTEwNjcxNH0.yNW1jkUTkIpanoQJP0dsFCfr5swXF10QX4nHNIoem8E';
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-*/
+import supabase from './supabaseConfig.js';
 
 // Backend URL Configuration
 const DEV_URL = "http://localhost:5000";
@@ -16,41 +9,19 @@ const IS_DEVELOPMENT = false;
 const BACKEND_URL = IS_DEVELOPMENT ? DEV_URL : PROD_URL;
 console.log(`Using backend URL: ${BACKEND_URL} (${IS_DEVELOPMENT ? 'Development' : 'Production'} mode)`);
 
-/*
-// Auth state listener
-supabase.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_IN') {
-    chrome.action.setBadgeText({ text: 'ON' });
-    chrome.storage.local.set({ session });
-  }
-  if (event === 'SIGNED_OUT') {
-    chrome.action.setBadgeText({ text: '' });
-    chrome.storage.local.remove('session');
-  }
-});
-
-// Session recovery
-chrome.runtime.onStartup.addListener(async () => {
-  const { session } = await chrome.storage.local.get('session');
-  if (session) {
-    await supabase.auth.setSession(session);
-  }
-});
-
-async function validateSession(session) {
-  const { data, error } = await supabase.auth.getUser(session.access_token);
-  if (error) throw new Error('Invalid session');
-  return data.user;
-}
-*/
+// Initialize supabase client
+console.log('Supabase client initialized');
 
 // Listen for messages from popup and content script
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   console.log("Message received:", request.action, request);
-  
-  // Handle session management
-  if (request.action === "storeSession") {
-    chrome.storage.local.set({ session: request.session });
+
+  // Handle auth flow initiation
+  if (request.action === "startAuthFlow") {
+    startAuthFlow()
+      .then(() => sendResponse({ success: true }))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true; // Indicates async response
   }
 
   // Handle comment generation
@@ -64,6 +35,68 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     return true;
   }
 });
+
+// Function to handle the OAuth authentication flow
+function startAuthFlow() {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Ensure supabase is initialized
+      if (!supabase) {
+        supabase = await initSupabase();
+      }
+      
+      const manifest = chrome.runtime.getManifest();
+      
+      const url = new URL('https://accounts.google.com/o/oauth2/auth');
+      url.searchParams.set('client_id', manifest.oauth2.client_id);
+      url.searchParams.set('response_type', 'id_token');
+      url.searchParams.set('access_type', 'offline');
+      url.searchParams.set('redirect_uri', `https://${chrome.runtime.id}.chromiumapp.org`);
+      url.searchParams.set('scope', manifest.oauth2.scopes.join(' '));
+      
+      console.log('Auth URL:', url.href); // Debugging
+      console.log("Extension ID:", chrome.runtime.id);
+      
+      chrome.identity.launchWebAuthFlow(
+        {
+          url: url.href,
+          interactive: true,
+        },
+        async (redirectedTo) => {
+          if (chrome.runtime.lastError) {
+            // Auth was not successful
+            console.error('Authentication failed:', chrome.runtime.lastError.message);
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            try {
+              // Auth was successful, extract the ID token from the redirectedTo URL
+              const url = new URL(redirectedTo);
+              const params = new URLSearchParams(url.hash.replace('#', ''));
+
+              // Call Supabase auth with the ID token
+              const { data, error } = await supabase.auth.signInWithIdToken({
+                provider: 'google',
+                token: params.get('id_token'),
+              });
+              
+              if (error) {
+                console.error('Supabase authentication error:', error);
+                reject(error);
+              }
+
+            } catch (error) {
+              console.error('Error processing auth response:', error);
+              reject(error);
+            }
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error starting auth flow:', error);
+      reject(error);
+    }
+  });
+}
 
 // Function to stream a comment from the backend API
 async function streamComment(postContent, tabId, sendResponse) {
