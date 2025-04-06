@@ -167,62 +167,73 @@ function generateComment(buttonElement, commentSection) {
     return;
   }
   
-  // Store the button element in a global variable so we can reference it when the response comes back
-  window.currentCommentButton = buttonElement;
-  
-  // Find the specific input field for this button
-  const targetInputSelector = buttonElement.getAttribute('data-target-input-selector');
-  
-  // Try to find the input field using the stored information
-  let inputField = null;
-  
-  if (targetInputSelector) {
-    try {
-      inputField = document.querySelector(targetInputSelector);
-    } catch (e) {
-      Logger.error('Error with selector, falling back to other methods:', e);
+  // First check if the user is authenticated before proceeding
+  chrome.runtime.sendMessage({ action: "checkAuthStatus" }, function(authResponse) {
+    // Only proceed if user is authenticated
+    if (!authResponse || !authResponse.isAuthenticated) {
+      Logger.log("User not authenticated. Comment generation skipped.");
+      return;
     }
-  }
-  
-  // If we couldn't find it with the selector, try other methods
-  if (!inputField) {
-    // Look for input fields near the button
-    inputField = 
-      commentSection.querySelector('div[role="textbox"][contenteditable="true"]') || 
-      commentSection.querySelector('.ql-editor[contenteditable="true"]') ||
-      (commentSection.getAttribute('role') === 'textbox' ? commentSection : null);
-  }
-  
-  if (inputField) {
-    // Focus the input field
-    inputField.focus();
     
-    // Update placeholder
-    updateCommentPlaceholder("Thinking...", inputField);
+    // User is authenticated, proceed with comment generation
     
-    // Store the input field for later use
-    window.currentCommentField = inputField;
-  } else {
-    Logger.error("[AVA.AI] Could not find input field for this button");
-  }
-  
-  // Request comment generation from background script
-  chrome.runtime.sendMessage(
-    {
-      action: "generateComment", 
-      postContent: postContent
-    },
-    function(response) {
-      if (chrome.runtime.lastError) {
-        Logger.error("Error: " + chrome.runtime.lastError.message);
-        // Reset placeholder if there was an error
-        if (window.currentCommentField) {
-          updateCommentPlaceholder("Add a comment…", window.currentCommentField);
-        }
-        return;
+    // Store the button element in a global variable so we can reference it when the response comes back
+    window.currentCommentButton = buttonElement;
+    
+    // Find the specific input field for this button
+    const targetInputSelector = buttonElement.getAttribute('data-target-input-selector');
+    
+    // Try to find the input field using the stored information
+    let inputField = null;
+    
+    if (targetInputSelector) {
+      try {
+        inputField = document.querySelector(targetInputSelector);
+      } catch (e) {
+        Logger.error('Error with selector, falling back to other methods:', e);
       }
     }
-  );
+    
+    // If we couldn't find it with the selector, try other methods
+    if (!inputField) {
+      // Look for input fields near the button
+      inputField = 
+        commentSection.querySelector('div[role="textbox"][contenteditable="true"]') || 
+        commentSection.querySelector('.ql-editor[contenteditable="true"]') ||
+        (commentSection.getAttribute('role') === 'textbox' ? commentSection : null);
+    }
+    
+    if (inputField) {
+      // Focus the input field
+      inputField.focus();
+      
+      // Update placeholder
+      updateCommentPlaceholder("Thinking...", inputField);
+      
+      // Store the input field for later use
+      window.currentCommentField = inputField;
+    } else {
+      Logger.error("[AVA.AI] Could not find input field for this button");
+    }
+    
+    // Request comment generation from background script
+    chrome.runtime.sendMessage(
+      {
+        action: "generateComment", 
+        postContent: postContent
+      },
+      function(response) {
+        if (chrome.runtime.lastError) {
+          Logger.error("Error: " + chrome.runtime.lastError.message);
+          // Reset placeholder if there was an error
+          if (window.currentCommentField) {
+            updateCommentPlaceholder("Add a comment…", window.currentCommentField);
+          }
+          return;
+        }
+      }
+    );
+  });
 }
 
 // Helper function to update the placeholder text of a specific comment field

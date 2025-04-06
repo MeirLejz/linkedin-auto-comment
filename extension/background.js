@@ -5,7 +5,7 @@ const DEV_URL = "http://localhost:5000";
 const PROD_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com";
 
 // Set to true for development, false for production
-const IS_DEVELOPMENT = false;
+const IS_DEVELOPMENT = true;
 const BACKEND_URL = IS_DEVELOPMENT ? DEV_URL : PROD_URL;
 console.log(`Using backend URL: ${BACKEND_URL} (${IS_DEVELOPMENT ? 'Development' : 'Production'} mode)`);
 
@@ -16,25 +16,62 @@ console.log('Supabase client initialized');
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   console.log("Message received:", request.action, request);
 
-  // Handle auth flow initiation
-  if (request.action === "startAuthFlow") {
-    startAuthFlow()
-      .then(() => sendResponse({ success: true }))
-      .catch(error => sendResponse({ success: false, error: error.message }));
+  // Route messages to appropriate handlers
+  const handlers = {
+    "startAuthFlow": handleStartAuthFlow,
+    "checkAuthStatus": handleCheckAuthStatus,
+    "signOut": handleSignOut,
+    "generateComment": handleGenerateComment
+  };
+
+  // Call the appropriate handler if it exists
+  if (handlers[request.action]) {
+    handlers[request.action](request, sender, sendResponse);
     return true; // Indicates async response
   }
-
-  // Handle comment generation
-  if (request.action === "generateComment") {
-    console.log("Generate comment request received");
-    
-    // Start streaming comment generation and pass the sendResponse function
-    streamComment(request.postContent, sender.tab.id, sendResponse);
-    
-    // Indicate we'll respond asynchronously
-    return true;
-  }
 });
+
+// Handler functions for different message types
+function handleStartAuthFlow(request, sender, sendResponse) {
+  startAuthFlow()
+    .then(() => sendResponse({ success: true }))
+    .catch(error => sendResponse({ success: false, error: error.message }));
+}
+
+function handleCheckAuthStatus(request, sender, sendResponse) {
+  (async () => {
+    const authenticated = await isAuthenticated();
+    const user = authenticated ? await getCurrentUser() : null;
+    sendResponse({ 
+      isAuthenticated: authenticated,
+      email: user?.email
+    });
+  })();
+}
+
+function handleSignOut(request, sender, sendResponse) {
+  signOutUser()
+    .then(result => sendResponse(result))
+    .catch(error => sendResponse({ success: false, error: error.message }));
+}
+
+function handleGenerateComment(request, sender, sendResponse) {
+  (async () => {
+    // Check if user is authenticated before generating comment
+    const authenticated = await isAuthenticated();
+    if (!authenticated) {
+      sendResponse({ 
+        success: false, 
+        error: "Authentication required. Please sign in to generate comments." 
+      });
+      return;
+    }
+    
+    // User is authenticated, proceed with comment generation
+    console.log("Generate comment request received");
+    streamComment(request.postContent, sender.tab.id, sendResponse);
+  })();
+}
 
 // Function to handle the OAuth authentication flow
 function startAuthFlow() {
@@ -82,8 +119,11 @@ function startAuthFlow() {
               if (error) {
                 console.error('Supabase authentication error:', error);
                 reject(error);
+              } else {
+                // Store the session
+                await storeUserSession(data.session);
+                resolve({ success: true });
               }
-
             } catch (error) {
               console.error('Error processing auth response:', error);
               reject(error);
@@ -194,5 +234,102 @@ async function streamComment(postContent, tabId, sendResponse) {
     
     // Send error response to close the message channel properly
     sendResponse({success: false, error: error.message || "Failed to generate comment"});
+  }
+}
+
+// Check if user is authenticated
+async function isAuthenticated() {
+  try {
+    const data = await chrome.storage.local.get('userSession');
+    if (!data.userSession) return false;
+    
+    // Check if session is expired
+    if (data.userSession.expires_at && new Date(data.userSession.expires_at * 1000) < new Date()) {
+      console.log('Session expired, attempting refresh');
+      // Try to refresh the token
+      const refreshed = await refreshToken(data.userSession.refresh_token);
+      return refreshed;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking authentication:', error);
+    return false;
+  }
+}
+
+// Refresh the access token using the refresh token
+async function refreshToken(refreshToken) {
+  try {
+    if (!refreshToken) {
+      console.log('No refresh token available');
+      return false;
+    }
+    
+    // Call Supabase to refresh the token
+    const { data, error } = await supabase.auth.refreshSession({
+      refresh_token: refreshToken
+    });
+    
+    if (error) {
+      console.error('Token refresh failed:', error.message);
+      return false;
+    }
+    
+    if (data && data.session) {
+      // Store the new session
+      await storeUserSession(data.session);
+      console.log('Token refreshed successfully');
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    return false;
+  }
+}
+
+// Store user session data (updated to handle Supabase session format correctly)
+async function storeUserSession(session) {
+  await chrome.storage.local.set({ 
+    userSession: {
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+      user: {
+        id: session.user.id,
+        email: session.user.email
+      },
+      expires_at: session.expires_at
+    }
+  });
+  console.log('User session stored');
+}
+
+// Get current user data
+async function getCurrentUser() {
+  try {
+    const data = await chrome.storage.local.get('userSession');
+    return data.userSession?.user || null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+}
+
+// Sign out user
+async function signOutUser() {
+  try {
+    // Sign out from Supabase
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    
+    // Clear local storage
+    await chrome.storage.local.remove('userSession');
+    console.log('User signed out');
+    return { success: true };
+  } catch (error) {
+    console.error('Error signing out:', error);
+    return { success: false, error: error.message };
   }
 }
