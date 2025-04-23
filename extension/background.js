@@ -350,9 +350,42 @@ async function signOutUser() {
   }
 }
 
-// Function to increment user request count in Supabase
+// Utility function to ensure authentication
+async function ensureAuthenticated(action) {
+  const authenticated = await isAuthenticated();
+  if (!authenticated) {
+    const refreshed = await refreshToken();
+    if (!refreshed) {
+      throw new Error('Authentication failed. Please sign in again.');
+    }
+  }
+  return action();
+}
+
+// Example usage with getUserRequestCount
+async function getUserRequestCount() {
+  return ensureAuthenticated(async () => {
+    const user = await getCurrentUser();
+    if (!user || !user.id) {
+      return 0;
+    }
+    
+    const { data, error } = await supabase.rpc('get_or_create_user_request_count', {
+      user_uuid: user.id
+    });
+    
+    if (error) {
+      console.error('Error fetching/creating request count:', error);
+      return 0;
+    }
+    
+    return data || 0;
+  });
+}
+
+// Example usage with incrementUserRequestCount
 async function incrementUserRequestCount(userId) {
-  try {
+  return ensureAuthenticated(async () => {
     const { error } = await supabase.rpc('increment_user_request_count', {
       user_uuid: userId
     });
@@ -362,33 +395,5 @@ async function incrementUserRequestCount(userId) {
     } else {
       console.log('Request count incremented successfully');
     }
-  } catch (error) {
-    console.error('Error calling increment function:', error);
-  }
-}
-
-// Function to get user request count
-async function getUserRequestCount() {
-  try {
-    const user = await getCurrentUser();
-    if (!user || !user.id) {
-      return 0; // Return 0 instead of null if user is not found
-    }
-    
-    const { data, error } = await supabase
-      .from('user_requests')
-      .select('request_count')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching request count:', error);
-      return 0; // Return 0 instead of null on error
-    }
-    
-    return data?.request_count || 0; // Return request_count or 0 if undefined
-  } catch (error) {
-    console.error('Error getting request count:', error);
-    return 0; // Return 0 instead of null on catch
-  }
+  });
 }

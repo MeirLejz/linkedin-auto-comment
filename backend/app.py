@@ -5,7 +5,7 @@ from openai import OpenAI
 import json
 from flask import stream_with_context
 
-IS_DEVELOPMENT = False
+IS_DEVELOPMENT = True
 
 app = Flask(__name__)
 
