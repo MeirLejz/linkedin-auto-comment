@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
-import os
 from openai import OpenAI
-import json
+import json, re, os
 from flask import stream_with_context
 
 IS_DEVELOPMENT = True
@@ -118,6 +117,7 @@ def generate_comment_stream(prompt):
         for chunk in stream:
             if chunk.choices and chunk.choices[0].delta.content:
                 content = chunk.choices[0].delta.content
+                content = sanitize_output(content)
                 yield f"data: {json.dumps({'content': content})}\n\n"
                 
         # Send a completion message
@@ -126,3 +126,10 @@ def generate_comment_stream(prompt):
     except Exception as e:
         print(f"Error in streaming: {str(e)}")
         yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+
+def sanitize_output(text):
+    # Replace em dashes with commas
+    text = re.sub(r'—', ',', text)
+    # Add more substitutions as needed
+    return text
