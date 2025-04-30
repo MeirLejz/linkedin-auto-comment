@@ -257,8 +257,8 @@ async function updateUIForAuth() {
   }
 }
 
-// Handle sign in with Google using the Google Identity Services
-async function handleSignInWithGoogle(response) {
+// Ensure the function is globally accessible
+window.handleSignInWithGoogle = async function(response) {
   console.log('Handling sign in with Google...');
   console.log('Response:', response);
   
