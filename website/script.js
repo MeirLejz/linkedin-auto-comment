@@ -24,7 +24,6 @@ const watchDemoBtn = document.getElementById('watch-demo-btn');
 const EXTENSION_URL = 'https://chrome.google.com/webstore/detail/your-extension-id-here';
 
 // Demo content setup
-const demoPostContent = "Just published my latest article on leveraging AI for content marketing strategies. The results have been incredible - 3x engagement and 45% more conversions. Who else is using AI in their marketing efforts?";
 const demoComments = [
   "AI dramatically boosts marketing impact.",
   "Smart marketers are already winning with AI.",
@@ -52,26 +51,34 @@ function animateOnScroll() {
     observer.observe(element);
   });
 }
-
 // Handle demo comment generation
 function handleDemoCommentGeneration() {
-  if (!demoAiButton || !demoComment) return;
+  if (!demoAiButton || !demoComment) {
+    console.warn('Demo AI button or comment element not found.');
+    return;
+  }
   
   demoAiButton.addEventListener('click', async () => {
+    console.log('Demo AI button clicked.');
+    
     // Update comment placeholder to show thinking state
     demoComment.textContent = "Thinking...";
     demoComment.classList.add('thinking');
-    
+    console.log('Thinking state set.');
+
     // Simulate AI response with typing effect
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+    console.log('Simulated AI response delay complete.');
+
     // Randomly select a comment from the demo comments
     const randomComment = demoComments[Math.floor(Math.random() * demoComments.length)];
-    
+    console.log('Random comment selected:', randomComment);
+
     // Clear the placeholder
     demoComment.textContent = "";
     demoComment.classList.remove('thinking');
-    
+    console.log('Thinking state cleared.');
+
     // Type the comment one character at a time
     let i = 0;
     const typingInterval = setInterval(() => {
@@ -80,10 +87,13 @@ function handleDemoCommentGeneration() {
         i++;
       } else {
         clearInterval(typingInterval);
+        console.log('Comment typing complete.');
+        
         // Add a subtle highlight effect to show completion
         demoComment.classList.add('highlight');
         setTimeout(() => {
           demoComment.classList.remove('highlight');
+          console.log('Highlight effect removed.');
         }, 500);
       }
     }, 25);
@@ -197,15 +207,25 @@ function setupCTAButtons() {
 
 // ─── 5) Auth State Handling ──────────────────────────────────────────────────
 async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser();
+  console.log('Fetching current user...');
+  const { data: { user }, error } = await supabase.auth.getUser();
+  
+  if (error) {
+    console.error('Error fetching user:', error.message);
+  } else {
+    console.log('Current user:', user);
+  }
+  
   return user;
 }
 
 // Show or hide auth buttons based on auth state
 async function updateUIForAuth() {
+  console.log('Updating UI for auth state...');
   const user = await getCurrentUser();
   
   if (user) {
+    console.log('User is signed in:', user.email);
     // User is signed in
     if (signOutBtn) signOutBtn.classList.add('visible');
     if (signInBtn) signInBtn.classList.remove('visible');
@@ -220,6 +240,7 @@ async function updateUIForAuth() {
       document.getElementById('sign-out-btn').addEventListener('click', signOut);
     }
   } else {
+    console.log('User is not signed in.');
     // User is not signed in
     if (signOutBtn) signOutBtn.classList.remove('visible');
     if (signInBtn) signInBtn.classList.add('visible');
