@@ -99,7 +99,12 @@ nav ul li a:hover::after {
   width: 100%;
 }
 
-.sign-out {
+.auth-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.sign-in, .sign-out {
   background: transparent;
   border: 1px solid var(--purple);
   color: var(--purple);
@@ -107,13 +112,24 @@ nav ul li a:hover::after {
   border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.3s, background-color 0.3s, color 0.3s;
+  transition: background-color 0.3s, color 0.3s, opacity 0.3s;
 }
 
-.sign-out:hover {
+.sign-in:hover, .sign-out:hover {
   background-color: var(--purple);
   color: var(--white);
+}
+
+.sign-in {
+  opacity: 0;
+}
+
+.sign-in.visible {
+  opacity: 1;
+}
+
+.sign-out {
+  opacity: 0;
 }
 
 .sign-out.visible {

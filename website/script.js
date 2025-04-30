@@ -13,9 +13,15 @@ const PRO_PAYMENT_LINK = ''; // ← e.g. 'https://store.payproglobal.com/checkou
 const FREE_PLAN_LINK = window.location.href; // just reload
 
 // ─── 3) UI Elements ───────────────────────────────────────────────────────────
+const signInBtn = document.getElementById('sign-in-btn');
 const signOutBtn = document.getElementById('sign-out-btn');
 const demoAiButton = document.getElementById('demo-ai-button');
 const demoComment = document.getElementById('demo-comment');
+const installExtensionBtn = document.getElementById('install-extension-btn');
+const watchDemoBtn = document.getElementById('watch-demo-btn');
+
+// Chrome Web Store URL for the extension
+const EXTENSION_URL = 'https://chrome.google.com/webstore/detail/your-extension-id-here';
 
 // Demo content setup
 const demoPostContent = "Just published my latest article on leveraging AI for content marketing strategies. The results have been incredible - 3x engagement and 45% more conversions. Who else is using AI in their marketing efforts?";
@@ -163,19 +169,74 @@ function setupHeroAnimation() {
   }
 }
 
+// Handle hero CTA buttons
+function setupCTAButtons() {
+  if (installExtensionBtn) {
+    installExtensionBtn.addEventListener('click', () => {
+      window.open(EXTENSION_URL, '_blank');
+    });
+  }
+  
+  if (watchDemoBtn) {
+    watchDemoBtn.addEventListener('click', () => {
+      // Scroll to demo section
+      const demoSection = document.getElementById('demo');
+      if (demoSection) {
+        demoSection.scrollIntoView({ behavior: 'smooth' });
+        
+        // Automatically trigger demo after scrolling
+        setTimeout(() => {
+          if (demoAiButton) {
+            demoAiButton.click();
+          }
+        }, 1000);
+      }
+    });
+  }
+}
+
 // ─── 5) Auth State Handling ──────────────────────────────────────────────────
 async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 }
 
-// Show or hide Sign-Out button based on auth state
+// Show or hide auth buttons based on auth state
 async function updateUIForAuth() {
   const user = await getCurrentUser();
+  
   if (user) {
-    signOutBtn.classList.add('visible');
+    // User is signed in
+    if (signOutBtn) signOutBtn.classList.add('visible');
+    if (signInBtn) signInBtn.classList.remove('visible');
+    
+    // Update UI for authenticated user if needed
+    document.body.classList.add('authenticated');
   } else {
-    signOutBtn.classList.remove('visible');
+    // User is not signed in
+    if (signOutBtn) signOutBtn.classList.remove('visible');
+    if (signInBtn) signInBtn.classList.add('visible');
+    
+    // Update UI for unauthenticated user if needed
+    document.body.classList.remove('authenticated');
+  }
+}
+
+// Handle sign in with Google
+async function handleSignIn() {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    });
+    
+    if (error) {
+      console.error('Error signing in:', error.message);
+    }
+  } catch (err) {
+    console.error('Sign in error:', err);
   }
 }
 
@@ -225,17 +286,28 @@ async function handlePostSignInRedirect() {
 
 // ─── 7) Sign Out ───────────────────────────────────────────────────────────────
 async function signOut() {
-  await supabase.auth.signOut();
-  // Clear any query params
-  history.replaceState({}, document.title, window.location.pathname);
-  updateUIForAuth();
+  try {
+    await supabase.auth.signOut();
+    // Clear any query params
+    history.replaceState({}, document.title, window.location.pathname);
+    updateUIForAuth();
+  } catch (err) {
+    console.error('Sign out error:', err);
+  }
 }
 
-if (signOutBtn) {
-  signOutBtn.addEventListener('click', signOut);
+// ─── 8) Event Listeners ─────────────────────────────────────────────────────
+function setupEventListeners() {
+  if (signInBtn) {
+    signInBtn.addEventListener('click', handleSignIn);
+  }
+  
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', signOut);
+  }
 }
 
-// ─── 8) Initialize UI ─────────────────────────────────────────────────────────
+// ─── 9) Initialize UI ─────────────────────────────────────────────────────────
 function initializeUI() {
   // Initialize animations and interactions
   animateOnScroll();
@@ -243,6 +315,10 @@ function initializeUI() {
   setupPlanHoverEffects();
   initNavHighlight();
   setupHeroAnimation();
+  setupCTAButtons();
+  
+  // Set up event listeners
+  setupEventListeners();
   
   // Handle auth state
   updateUIForAuth();
@@ -304,6 +380,15 @@ document.head.insertAdjacentHTML('beforeend', `
   
   nav ul li a.active::after {
     width: 100%;
+  }
+  
+  /* Authentication-specific styles */
+  .authenticated .auth-required {
+    display: block;
+  }
+  
+  .auth-required {
+    display: none;
   }
 </style>
 `);
