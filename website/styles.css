@@ -724,3 +724,40 @@ footer {
     min-width: 100%;
   }
 }
+
+/* ─── AUTHENTICATION STYLES ─────────────────────────────────────────────── */
+.user-welcome {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 500;
+  color: var(--dark-gray);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.sign-out-btn {
+  background: transparent;
+  border: 1px solid var(--purple);
+  color: var(--purple);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sign-out-btn:hover {
+  background-color: var(--purple);
+  color: var(--white);
+}
+
+.authenticated .auth-required {
+  display: block;
+}
+
+.auth-required {
+  display: none;
+}

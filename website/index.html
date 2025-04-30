@@ -22,22 +22,30 @@
       </ul>
     </nav>
     <div class="auth-buttons">
-      <!-- Google Sign-In Button -->
-      <div id="g_id_onload"
-           data-client_id="715880668270-71umu0af9d97l9171f8kiimr2as3qcrr.apps.googleusercontent.com"
-           data-context="signin"
-           data-ux_mode="popup"
-           data-callback="handleSignInWithGoogle"
-           data-auto_prompt="false">
+      <!-- User welcome message (hidden by default) -->
+      <div id="user-welcome" class="user-welcome hidden">
+        Welcome, <span id="user-name">User</span>!
+        <button id="sign-out-btn" class="sign-out-btn">Sign Out</button>
       </div>
 
-      <div class="g_id_signin"
-           data-type="standard"
-           data-shape="pill"
-           data-theme="filled_black"
-           data-text="signin_with"
-           data-size="large"
-           data-logo_alignment="left">
+      <!-- Google Sign-In Button -->
+      <div id="google-signin-container">
+        <div id="g_id_onload"
+             data-client_id="715880668270-71umu0af9d97l9171f8kiimr2as3qcrr.apps.googleusercontent.com"
+             data-context="signin"
+             data-ux_mode="popup"
+             data-callback="handleSignInWithGoogle"
+             data-auto_prompt="false">
+        </div>
+
+        <div class="g_id_signin"
+             data-type="standard"
+             data-shape="pill"
+             data-theme="filled_black"
+             data-text="signin_with"
+             data-size="large"
+             data-logo_alignment="left">
+        </div>
       </div>
     </div>
   </header>

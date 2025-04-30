@@ -219,6 +219,56 @@ async function getCurrentUser() {
   return user;
 }
 
+// Update UI based on authentication state
+async function updateAuthUI() {
+  const user = await getCurrentUser();
+  const userWelcome = document.getElementById('user-welcome');
+  const userName = document.getElementById('user-name');
+  const googleSigninContainer = document.getElementById('google-signin-container');
+  const signOutBtn = document.getElementById('sign-out-btn');
+  
+  if (user) {
+    // User is signed in
+    if (userWelcome) userWelcome.classList.remove('hidden');
+    if (googleSigninContainer) googleSigninContainer.classList.add('hidden');
+    
+    // Set user name (using email if name not available)
+    if (userName) {
+      const displayName = user.user_metadata?.full_name || 
+                          user.user_metadata?.name || 
+                          user.email?.split('@')[0] || 
+                          'User';
+      userName.textContent = displayName;
+    }
+    
+    // Add sign out functionality
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', handleSignOut);
+    }
+    
+    console.log('Updated UI for signed-in user');
+  } else {
+    // User is not signed in
+    if (userWelcome) userWelcome.classList.add('hidden');
+    if (googleSigninContainer) googleSigninContainer.classList.remove('hidden');
+    console.log('Updated UI for signed-out user');
+  }
+}
+
+// Handle sign out
+async function handleSignOut() {
+  console.log('Signing out...');
+  const { error } = await supabase.auth.signOut();
+  
+  if (error) {
+    console.error('Error signing out:', error.message);
+  } else {
+    console.log('Signed out successfully');
+    // Update UI after sign out
+    updateAuthUI();
+  }
+}
+
 // Ensure the function is globally accessible
 window.handleSignInWithGoogle = async function(response) {
   console.log('Handling sign in with Google...');
@@ -233,10 +283,10 @@ window.handleSignInWithGoogle = async function(response) {
     console.error('Error signing in with Google:', error.message);
   } else {
     console.log('Signed in successfully:', data);
+    // Update UI after successful sign in
+    updateAuthUI();
   }
 }
-
-
 
 // ─── 9) Initialize UI ─────────────────────────────────────────────────────────
 function initializeUI() {
@@ -248,6 +298,14 @@ function initializeUI() {
   setupHeroAnimation();
   setupCTAButtons();
   
+  // Check authentication state on page load
+  updateAuthUI();
+  
+  // Set up auth state change listener
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Auth state changed:', event);
+    updateAuthUI();
+  });
 }
 
 // Initialize when the DOM is fully loaded
