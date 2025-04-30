@@ -167,10 +167,18 @@ function setupHeroAnimation() {
     const wrapper = document.createElement('span');
     wrapper.className = 'text-animation-wrapper';
     
-    // Add each letter with a span
+    // Add each letter with a span, preserving spaces
     [...text].forEach((letter, i) => {
       const span = document.createElement('span');
-      span.textContent = letter;
+      
+      // If it's a space, use a non-breaking space and add a special class
+      if (letter === ' ') {
+        span.innerHTML = '&nbsp;';
+        span.classList.add('space');
+      } else {
+        span.textContent = letter;
+      }
+      
       span.style.animationDelay = `${i * 0.05}s`;
       wrapper.appendChild(span);
     });

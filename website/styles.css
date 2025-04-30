@@ -761,3 +761,9 @@ footer {
 .auth-required {
   display: none;
 }
+
+/* Fix for animated text spaces */
+.text-animation-wrapper .space {
+  display: inline-block;
+  width: 0.3em; /* Adjust width as needed */
+}
