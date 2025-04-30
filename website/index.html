@@ -6,6 +6,7 @@
   <title>AVA AI – LinkedIn Comment Generator</title>
   <link rel="stylesheet" href="styles.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
   <header>
@@ -21,8 +22,23 @@
       </ul>
     </nav>
     <div class="auth-buttons">
-      <button id="sign-in-btn" class="sign-in">Sign In</button>
-      <button id="sign-out-btn" class="sign-out">Sign Out</button>
+      <!-- Google Sign-In Button -->
+      <div id="g_id_onload"
+           data-client_id="715880668270-71umu0af9d97l9171f8kiimr2as3qcrr.apps.googleusercontent.com"
+           data-context="signin"
+           data-ux_mode="popup"
+           data-callback="handleSignInWithGoogle"
+           data-auto_prompt="false">
+      </div>
+
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="pill"
+           data-theme="filled_black"
+           data-text="signin_with"
+           data-size="large"
+           data-logo_alignment="left">
+      </div>
     </div>
   </header>
 

@@ -210,39 +210,49 @@ async function updateUIForAuth() {
     if (signOutBtn) signOutBtn.classList.add('visible');
     if (signInBtn) signInBtn.classList.remove('visible');
     
-    // Update UI for authenticated user if needed
+    // Update UI for authenticated user
     document.body.classList.add('authenticated');
+    
+    // Display personalized greeting
+    const authButtons = document.querySelector('.auth-buttons');
+    if (authButtons) {
+      authButtons.innerHTML = `<span>Hello, ${user.email}</span> <button id="sign-out-btn" class="sign-out visible">Sign Out</button>`;
+      document.getElementById('sign-out-btn').addEventListener('click', signOut);
+    }
   } else {
     // User is not signed in
     if (signOutBtn) signOutBtn.classList.remove('visible');
     if (signInBtn) signInBtn.classList.add('visible');
     
-    // Update UI for unauthenticated user if needed
+    // Update UI for unauthenticated user
     document.body.classList.remove('authenticated');
+    
+    // Reset auth buttons to show sign-in button
+    const authButtons = document.querySelector('.auth-buttons');
+    if (authButtons) {
+      authButtons.innerHTML = `<button id="sign-in-btn" class="sign-in visible">Sign In</button>`;
+      document.getElementById('sign-in-btn').addEventListener('click', handleSignInWithGoogle);
+    }
   }
 }
 
-// Handle sign in with Google
-async function handleSignIn() {
-  try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + window.location.pathname
-      }
-    });
-    
-    if (error) {
-      console.error('Error signing in:', error.message);
-    }
-  } catch (err) {
-    console.error('Sign in error:', err);
+// Handle sign in with Google using the Google Identity Services
+async function handleSignInWithGoogle(response) {
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: 'google',
+    token: response.credential,
+  });
+
+  if (error) {
+    console.error('Error signing in with Google:', error.message);
+  } else {
+    console.log('Signed in successfully:', data);
+    updateUIForAuth(); // Update the UI after successful sign-in
   }
 }
 
 // Listen for auth changes (e.g. redirect back after Google sign-in)
 supabase.auth.onAuthStateChange(() => {
-  handlePostSignInRedirect();
   updateUIForAuth();
 });
 
@@ -299,7 +309,7 @@ async function signOut() {
 // ─── 8) Event Listeners ─────────────────────────────────────────────────────
 function setupEventListeners() {
   if (signInBtn) {
-    signInBtn.addEventListener('click', handleSignIn);
+    signInBtn.addEventListener('click', handleSignInWithGoogle);
   }
   
   if (signOutBtn) {
@@ -322,7 +332,6 @@ function initializeUI() {
   
   // Handle auth state
   updateUIForAuth();
-  handlePostSignInRedirect();
 }
 
 // Initialize when the DOM is fully loaded
