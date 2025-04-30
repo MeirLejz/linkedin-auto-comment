@@ -5,48 +5,185 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AVA AI – LinkedIn Comment Generator</title>
   <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
   <header>
     <div class="logo-container">
-      <img src="logo.png" alt="AVA AI Logo" />
+      <img src="button.png" alt="AVA AI Logo" class="logo-image" />
       <h1>AVA AI</h1>
     </div>
+    <nav>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#plans">Pricing</a></li>
+      </ul>
+    </nav>
     <button id="sign-out-btn" class="sign-out">Sign Out</button>
   </header>
 
   <main>
     <section class="hero">
-      <h2>Boost Your LinkedIn Reach with Smart Comments</h2>
-      <p>AVA AI generates high-quality comment suggestions for your LinkedIn posts. Customize before posting and engage more effectively.</p>
+      <div class="hero-content">
+        <h2 class="animated-text">Boost Your LinkedIn Engagement with Smart Comments</h2>
+        <p>AVA AI generates high-quality comment suggestions for your LinkedIn posts. Customize before posting and engage more effectively.</p>
+        <div class="hero-cta">
+          <button class="btn primary-btn">Install Extension</button>
+          <button class="btn secondary-btn">Watch Demo</button>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="button.png" alt="LinkedIn Comment Assistant" class="pulse-animation" />
+      </div>
     </section>
 
-    <section class="plans">
-      <div class="plan-box">
+    <section id="features" class="features">
+      <h2>Why Choose AVA AI?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <i class="fas fa-bolt feature-icon"></i>
+          <h3>One-Click Generation</h3>
+          <p>Generate engaging comments with a single click directly in LinkedIn's interface.</p>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-brain feature-icon"></i>
+          <h3>Smart AI Model</h3>
+          <p>Powered by GPT-4, our AI understands context and generates relevant comments.</p>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-clock feature-icon"></i>
+          <h3>Save Time</h3>
+          <p>No more writer's block - get instant inspiration for your LinkedIn interactions.</p>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-chart-line feature-icon"></i>
+          <h3>Boost Engagement</h3>
+          <p>Well-crafted comments increase your visibility and networking opportunities.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="how-it-works">
+      <h2>How It Works</h2>
+      <div class="steps-container">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Install Extension</h3>
+          <p>Add AVA AI to Chrome with one click.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Browse LinkedIn</h3>
+          <p>Find posts you'd like to comment on.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Click AVA Button</h3>
+          <p>Our AI button appears in the comment box.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>Edit & Post</h3>
+          <p>Review, customize, and post your comment.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo" class="demo">
+      <h2>See AVA AI in Action</h2>
+      <div class="demo-container">
+        <div class="linkedin-post">
+          <div class="post-header">
+            <div class="post-author">
+              <img src="button.png" alt="Author" class="author-image">
+              <div>
+                <h4>Jane Doe</h4>
+                <p>VP of Marketing | Speaker | Thought Leader</p>
+              </div>
+            </div>
+          </div>
+          <div class="post-content">
+            <p>Just published my latest article on leveraging AI for content marketing strategies. The results have been incredible - 3x engagement and 45% more conversions. Who else is using AI in their marketing efforts?</p>
+          </div>
+          <div class="post-comment-box">
+            <div class="comment-input">
+              <span id="demo-comment" class="comment-placeholder">Add a comment...</span>
+            </div>
+            <button id="demo-ai-button" class="ai-button">
+              <img src="button.png" alt="AI" width="20" height="20">
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="plans" class="plans">
+      <h2>Choose Your Plan</h2>
+      <div class="plan-box" id="free-plan">
+        <div class="plan-badge">Popular</div>
         <h3>Free Plan</h3>
         <ul>
-          <li>✅ 30 comments per month</li>
-          <li>✅ Basic AI model</li>
-          <li>✅ No credit card required</li>
+          <li><i class="fas fa-check"></i> 30 comments per month</li>
+          <li><i class="fas fa-check"></i> Basic AI model</li>
+          <li><i class="fas fa-check"></i> No credit card required</li>
         </ul>
         <button class="btn" onclick="handleSignup('free')">Start Free</button>
       </div>
 
-      <div class="plan-box">
+      <div class="plan-box" id="pro-plan">
+        <div class="plan-badge">Best Value</div>
         <h3>Pro Plan</h3>
         <p class="price">$10 / month</p>
         <ul>
-          <li>🚀 Unlimited comments</li>
-          <li>🧠 Advanced AI model</li>
-          <li>💡 Priority support</li>
+          <li><i class="fas fa-rocket"></i> Unlimited comments</li>
+          <li><i class="fas fa-brain"></i> Advanced AI model</li>
+          <li><i class="fas fa-lightbulb"></i> Priority support</li>
         </ul>
         <button class="btn" onclick="handleSignup('pro')">Upgrade to Pro</button>
+      </div>
+    </section>
+
+    <section class="testimonials">
+      <h2>What Our Users Say</h2>
+      <div class="testimonial-container">
+        <div class="testimonial">
+          <div class="quote">"AVA AI has transformed how I engage on LinkedIn. The comments are thoughtful and have helped me grow my network."</div>
+          <div class="author">- Mark Johnson, Product Manager</div>
+        </div>
+        <div class="testimonial">
+          <div class="quote">"As a busy entrepreneur, this tool saves me at least an hour each day. The comments sound just like me!"</div>
+          <div class="author">- Sarah Chen, CEO at TechStart</div>
+        </div>
       </div>
     </section>
   </main>
 
   <footer>
-    &copy; 2025 AVA AI. All rights reserved.
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>AVA AI</h3>
+        <p>AI-powered LinkedIn Comment Assistant</p>
+      </div>
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#plans">Pricing</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Legal</h3>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2025 AVA AI. All rights reserved.
+    </div>
   </footer>
 
   <script src="script.js"></script>
