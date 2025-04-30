@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AVA AI - LinkedIn Comment Generator</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AVA AI – LinkedIn Comment Generator</title>
+  <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
   <header>
@@ -12,34 +12,38 @@
       <img src="logo.png" alt="AVA AI Logo" />
       <h1>AVA AI</h1>
     </div>
+    <button id="sign-out-btn" class="sign-out">Sign Out</button>
   </header>
 
-  <section class="hero">
-    <h2>Boost Your LinkedIn Reach with Smart Comments</h2>
-    <p>AVA AI helps you engage better by generating smart, customizable comments for LinkedIn posts. Stand out and connect with your audience—effortlessly.</p>
-  </section>
+  <main>
+    <section class="hero">
+      <h2>Boost Your LinkedIn Reach with Smart Comments</h2>
+      <p>AVA AI generates high-quality comment suggestions for your LinkedIn posts. Customize before posting and engage more effectively.</p>
+    </section>
 
-  <section class="plans">
-    <div class="plan-box">
-      <h3>Free Plan</h3>
-      <ul>
-        <li>✅ 30 comments per month</li>
-        <li>✅ Use basic AI model</li>
-        <li>✅ Easy setup</li>
-      </ul>
-      <a href="#" class="btn" onclick="handleSignup('free')">Start Free</a>
-    </div>
+    <section class="plans">
+      <div class="plan-box">
+        <h3>Free Plan</h3>
+        <ul>
+          <li>✅ 30 comments per month</li>
+          <li>✅ Basic AI model</li>
+          <li>✅ No credit card required</li>
+        </ul>
+        <button class="btn" onclick="handleSignup('free')">Start Free</button>
+      </div>
 
-    <div class="plan-box">
-      <h3>Pro Plan</h3>
-      <ul>
-        <li>🚀 Unlimited comments</li>
-        <li>🧠 Better AI model</li>
-        <li>💡 Priority support</li>
-      </ul>
-      <a href="#" class="btn" onclick="handleSignup('pro')">Go Pro – $10/mo</a>
-    </div>
-  </section>
+      <div class="plan-box">
+        <h3>Pro Plan</h3>
+        <p class="price">$10 / month</p>
+        <ul>
+          <li>🚀 Unlimited comments</li>
+          <li>🧠 Advanced AI model</li>
+          <li>💡 Priority support</li>
+        </ul>
+        <button class="btn" onclick="handleSignup('pro')">Upgrade to Pro</button>
+      </div>
+    </section>
+  </main>
 
   <footer>
     &copy; 2025 AVA AI. All rights reserved.

@@ -1,124 +1,136 @@
 :root {
-    --purple: #7C3AED;
-    --light-purple: #ede9fe;
-    --white: #ffffff;
-    --gray: #f9fafb;
-    --dark: #1f2937;
-  }
-  
-  * {
-    box-sizing: border-box;
-  }
-  
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--gray);
-    color: var(--dark);
-  }
-  
-  header {
-    background-color: var(--purple);
-    color: var(--white);
-    padding: 1rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .logo-container {
-    display: flex;
-    align-items: center;
-  }
-  
-  .logo-container img {
-    height: 40px;
-    margin-right: 0.75rem;
-  }
-  
-  h1 {
-    margin: 0;
-    font-size: 1.5rem;
-  }
-  
-  .hero {
-    text-align: center;
-    padding: 3rem 1rem;
-  }
-  
-  .hero h2 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-  
-  .hero p {
-    font-size: 1.2rem;
-    color: #4b5563;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  
+  --purple: #7C3AED;
+  --light-gray: #f9fafb;
+  --dark-gray: #1f2937;
+  --white: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+}
+
+header {
+  background-color: var(--purple);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo-container img {
+  height: 40px;
+  margin-right: 0.75rem;
+}
+
+header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.sign-out {
+  background: transparent;
+  border: 1px solid var(--white);
+  color: var(--white);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.sign-out.visible {
+  opacity: 1;
+}
+
+main {
+  padding: 2rem 1rem;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.hero h2 {
+  font-size: 2rem;
+  margin: 0 0 1rem;
+}
+.hero p {
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  color: #4b5563;
+}
+
+.plans {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+}
+.plan-box {
+  background-color: var(--white);
+  border: 2px solid var(--purple);
+  border-radius: 12px;
+  width: 300px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.plan-box h3 {
+  color: var(--purple);
+  margin-top: 0;
+}
+.plan-box .price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0.5rem 0;
+}
+.plan-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+.plan-box li {
+  margin: 0.5rem 0;
+}
+
+.btn {
+  background-color: var(--purple);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+.btn:hover {
+  background-color: #6b21a8;
+}
+
+footer {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
   .plans {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 2rem;
-    padding: 3rem 1rem;
+    flex-direction: column;
+    align-items: center;
   }
-  
-  .plan-box {
-    background-color: var(--white);
-    border: 2px solid var(--purple);
-    border-radius: 12px;
-    padding: 2rem;
-    width: 300px;
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  }
-  
-  .plan-box h3 {
-    margin-top: 0;
-    color: var(--purple);
-  }
-  
-  .plan-box ul {
-    list-style: none;
-    padding: 0;
-    margin: 1rem 0;
-  }
-  
-  .plan-box li {
-    margin: 0.5rem 0;
-  }
-  
-  .btn {
-    display: inline-block;
-    margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
-    background-color: var(--purple);
-    color: var(--white);
-    border: none;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-  }
-  
-  .btn:hover {
-    background-color: #6b21a8;
-  }
-  
-  footer {
-    text-align: center;
-    padding: 2rem 1rem;
-    font-size: 0.9rem;
-    color: #6b7280;
-  }
-  
-  @media (max-width: 768px) {
-    .plans {
-      flex-direction: column;
-      align-items: center;
-    }
-  }
-  
+}
