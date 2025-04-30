@@ -219,44 +219,6 @@ async function getCurrentUser() {
   return user;
 }
 
-// Show or hide auth buttons based on auth state
-async function updateUIForAuth() {
-  console.log('Updating UI for auth state...');
-  const user = await getCurrentUser();
-  
-  if (user) {
-    console.log('User is signed in:', user.email);
-    // User is signed in
-    if (signOutBtn) signOutBtn.classList.add('visible');
-    if (signInBtn) signInBtn.classList.remove('visible');
-    
-    // Update UI for authenticated user
-    document.body.classList.add('authenticated');
-    
-    // Display personalized greeting
-    const authButtons = document.querySelector('.auth-buttons');
-    if (authButtons) {
-      authButtons.innerHTML = `<span>Hello, ${user.email}</span> <button id="sign-out-btn" class="sign-out visible">Sign Out</button>`;
-      document.getElementById('sign-out-btn').addEventListener('click', signOut);
-    }
-  } else {
-    console.log('User is not signed in.');
-    // User is not signed in
-    if (signOutBtn) signOutBtn.classList.remove('visible');
-    if (signInBtn) signInBtn.classList.add('visible');
-    
-    // Update UI for unauthenticated user
-    document.body.classList.remove('authenticated');
-    
-    // Reset auth buttons to show sign-in button
-    const authButtons = document.querySelector('.auth-buttons');
-    if (authButtons) {
-      authButtons.innerHTML = `<button id="sign-in-btn" class="sign-in visible">Sign In</button>`;
-      document.getElementById('sign-in-btn').addEventListener('click', handleSignInWithGoogle);
-    }
-  }
-}
-
 // Ensure the function is globally accessible
 window.handleSignInWithGoogle = async function(response) {
   console.log('Handling sign in with Google...');
@@ -271,75 +233,10 @@ window.handleSignInWithGoogle = async function(response) {
     console.error('Error signing in with Google:', error.message);
   } else {
     console.log('Signed in successfully:', data);
-    updateUIForAuth(); // Update the UI after successful sign-in
   }
 }
 
-// Listen for auth changes (e.g. redirect back after Google sign-in)
-supabase.auth.onAuthStateChange(() => {
-  updateUIForAuth();
-});
 
-// ─── 6) Signup / Redirect Logic ───────────────────────────────────────────────
-async function handleSignup(tier) {
-  const user = await getCurrentUser();
-  const targetURL = (tier === 'pro') ? PRO_PAYMENT_LINK : FREE_PLAN_LINK;
-
-  if (user) {
-    // Already signed in → go straight to target
-    window.location.href = targetURL;
-  } else {
-    // Not signed in → start OAuth and redirect back to this page with tier info
-    const redirectTo = window.location.origin + window.location.pathname + `?tier=${tier}`;
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo }
-    });
-  }
-}
-
-// After redirect from OAuth, send user to payment if needed
-async function handlePostSignInRedirect() {
-  const params = new URLSearchParams(window.location.search);
-  const tier = params.get('tier');
-  if (!tier) return;
-
-  // Clear the URL param so we don't loop endlessly
-  history.replaceState({}, document.title, window.location.pathname);
-
-  const user = await getCurrentUser();
-  if (!user) return; // still not signed in
-
-  if (tier === 'pro' && PRO_PAYMENT_LINK) {
-    window.location.href = PRO_PAYMENT_LINK;
-  } else if (tier === 'free') {
-    // Free plan: just reload to signal "you're signed in"
-    window.location.href = FREE_PLAN_LINK;
-  }
-}
-
-// ─── 7) Sign Out ───────────────────────────────────────────────────────────────
-async function signOut() {
-  try {
-    await supabase.auth.signOut();
-    // Clear any query params
-    history.replaceState({}, document.title, window.location.pathname);
-    updateUIForAuth();
-  } catch (err) {
-    console.error('Sign out error:', err);
-  }
-}
-
-// ─── 8) Event Listeners ─────────────────────────────────────────────────────
-function setupEventListeners() {
-  if (signInBtn) {
-    signInBtn.addEventListener('click', handleSignInWithGoogle);
-  }
-  
-  if (signOutBtn) {
-    signOutBtn.addEventListener('click', signOut);
-  }
-}
 
 // ─── 9) Initialize UI ─────────────────────────────────────────────────────────
 function initializeUI() {
@@ -351,11 +248,6 @@ function initializeUI() {
   setupHeroAnimation();
   setupCTAButtons();
   
-  // Set up event listeners
-  setupEventListeners();
-  
-  // Handle auth state
-  updateUIForAuth();
 }
 
 // Initialize when the DOM is fully loaded
