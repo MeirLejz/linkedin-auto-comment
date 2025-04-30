@@ -258,7 +258,10 @@ async function updateUIForAuth() {
 }
 
 // Handle sign in with Google using the Google Identity Services
-window.handleSignInWithGoogle = async function(response) {
+async function handleSignInWithGoogle(response) {
+  console.log('Handling sign in with Google...');
+  console.log('Response:', response);
+  
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: 'google',
     token: response.credential,
