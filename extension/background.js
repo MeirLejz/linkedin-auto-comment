@@ -68,11 +68,14 @@ function handleGenerateComment(request, sender, sendResponse) {
       return;
     }
 
+    console.log("User ID:", user.id, "Type:", typeof user.id);
+
     // Check if the user has remaining requests
     const { data, error } = await supabase.rpc('use_request', {
       user_uuid: user.id
     });
-
+    console.log("Data:", data);
+    console.log("Error:", error);
     if (error || !data) {
       sendResponse({ 
         success: false, 
@@ -377,7 +380,7 @@ async function getUserRequestCount() {
     const user = await getCurrentUser();
     
     const { data, error } = await supabase.rpc('get_user_remaining_requests', {
-      user_uuid: user.id
+      p_user_id: user.id
     });
     
     if (error) {
