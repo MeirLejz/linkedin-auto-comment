@@ -5,7 +5,7 @@ const DEV_URL = "http://localhost:5000";
 const PROD_URL = "https://linkedin-comment-assistant-c78fcd89d8ae.herokuapp.com";
 
 // Set to true for development, false for production
-const IS_DEVELOPMENT = true;
+const IS_DEVELOPMENT = false;
 const BACKEND_URL = IS_DEVELOPMENT ? DEV_URL : PROD_URL;
 console.log(`Using backend URL: ${BACKEND_URL} (${IS_DEVELOPMENT ? 'Development' : 'Production'} mode)`);
 
@@ -57,30 +57,39 @@ function handleSignOut(request, sender, sendResponse) {
 }
 
 function handleGenerateComment(request, sender, sendResponse) {
-  (async () => {
-    // Check if user is authenticated before generating comment
-    const authenticated = await isAuthenticated();
-    if (!authenticated) {
+  ensureAuthenticated(async () => {
+    // Get current user information
+    const user = await getCurrentUser();
+    if (!user || !user.id) {
       sendResponse({ 
         success: false, 
-        error: "Authentication required. Please sign in to generate comments." 
+        error: "User information could not be retrieved." 
       });
       return;
     }
-    
+
+    // Check if the user has remaining requests
+    const { data, error } = await supabase.rpc('use_request', {
+      user_uuid: user.id
+    });
+
+    if (error || !data) {
+      sendResponse({ 
+        success: false, 
+        error: "No remaining requests. Please upgrade your plan or try again later." 
+      });
+      return;
+    }
+
     // Proceed with comment generation
     console.log("Generate comment request received");
     streamComment(request.postContent, sender.tab.id, sendResponse);
-
-    // User is authenticated, increment request count
-    const user = await getCurrentUser();
-    if (user && user.id) {
-      incrementUserRequestCount(user.id).catch(err => 
-        console.error('Error incrementing request count:', err)
-      );
-    }
-    
-  })();
+  }).catch(error => {
+    sendResponse({ 
+      success: false, 
+      error: error.message || "Authentication failed. Please sign in again." 
+    });
+  });
 }
 
 function handleGetRequestCount(request, sender, sendResponse) {
@@ -366,34 +375,16 @@ async function ensureAuthenticated(action) {
 async function getUserRequestCount() {
   return ensureAuthenticated(async () => {
     const user = await getCurrentUser();
-    if (!user || !user.id) {
-      return 0;
-    }
     
-    const { data, error } = await supabase.rpc('get_or_create_user_request_count', {
+    const { data, error } = await supabase.rpc('get_user_remaining_requests', {
       user_uuid: user.id
     });
     
     if (error) {
-      console.error('Error fetching/creating request count:', error);
+      console.error('Error fetching request count:', error);
       return 0;
     }
     
     return data || 0;
-  });
-}
-
-// Example usage with incrementUserRequestCount
-async function incrementUserRequestCount(userId) {
-  return ensureAuthenticated(async () => {
-    const { error } = await supabase.rpc('increment_user_request_count', {
-      user_uuid: userId
-    });
-    
-    if (error) {
-      console.error('Error incrementing request count:', error);
-    } else {
-      console.log('Request count incremented successfully');
-    }
   });
 }

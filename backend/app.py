@@ -4,7 +4,7 @@ from openai import OpenAI
 import json, re, os
 from flask import stream_with_context
 
-IS_DEVELOPMENT = True
+IS_DEVELOPMENT = False
 
 app = Flask(__name__)
 
@@ -102,7 +102,7 @@ def generate_comment_stream(prompt):
     try:
         # Call OpenAI API with streaming enabled
         stream = client.chat.completions.create(
-            model="gpt-4-turbo",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}

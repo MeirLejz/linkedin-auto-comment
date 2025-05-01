@@ -40,7 +40,7 @@ function displayRequestCount() {
 
     // Display the count
     if (response && response.success) {
-      requestCountElement.textContent = `Comments generated: ${response.count || 0}`;
+      requestCountElement.textContent = `Remaining comments: ${response.count || 0}`;
       requestCountElement.style.display = 'block';
     } else {
       requestCountElement.textContent = 'Unable to load usage data';
