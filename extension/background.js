@@ -22,7 +22,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     "checkAuthStatus": handleCheckAuthStatus,
     "signOut": handleSignOut,
     "generateComment": handleGenerateComment,
-    "getRequestCount": handleGetRequestCount
+    "getRequestCount": handleGetRequestCount,
+    "getPlanType": handleGetPlanType
   };
 
   // Call the appropriate handler if it exists
@@ -32,7 +33,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   }
 });
 
+// =========================================================================  
 // Handler functions for different message types
+// =========================================================================
 function handleStartAuthFlow(request, sender, sendResponse) {
   startAuthFlow()
     .then(() => sendResponse({ success: true }))
@@ -68,14 +71,11 @@ function handleGenerateComment(request, sender, sendResponse) {
       return;
     }
 
-    console.log("User ID:", user.id, "Type:", typeof user.id);
-
     // Check if the user has remaining requests
     const { data, error } = await supabase.rpc('use_request', {
       user_uuid: user.id
     });
-    console.log("Data:", data);
-    console.log("Error:", error);
+
     if (error || !data) {
       sendResponse({ 
         success: false, 
@@ -100,6 +100,18 @@ function handleGetRequestCount(request, sender, sendResponse) {
     .then(count => sendResponse({ success: true, count: count }))
     .catch(error => sendResponse({ success: false, error: error.message }));
 }
+
+function handleGetPlanType(request, sender, sendResponse) {
+  getUserPlanType()
+    .then(planType => sendResponse({ success: true, planType: planType }))
+    .catch(error => sendResponse({ success: false, error: error.message }));
+}
+
+
+
+// =========================================================================
+// Implementation functions
+// =========================================================================
 
 // Function to handle the OAuth authentication flow
 function startAuthFlow() {
@@ -374,7 +386,6 @@ async function ensureAuthenticated(action) {
   return action();
 }
 
-// Example usage with getUserRequestCount
 async function getUserRequestCount() {
   return ensureAuthenticated(async () => {
     const user = await getCurrentUser();
@@ -388,6 +399,23 @@ async function getUserRequestCount() {
       return 0;
     }
     
-    return data || 0;
+    return data;
+  });
+}
+
+async function getUserPlanType() {
+  return ensureAuthenticated(async () => {
+    const user = await getCurrentUser();
+
+    const { data, error } = await supabase.rpc('get_user_plan_type', {
+      p_user_id: user.id
+    });
+    
+    if (error) {
+      console.error('Error fetching plan type:', error);
+      return "Free";
+    }
+    
+    return data;
   });
 }

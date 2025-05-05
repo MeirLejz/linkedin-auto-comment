@@ -40,11 +40,18 @@ function displayRequestCount() {
 
     // Display the count
     if (response && response.success) {
-      requestCountElement.textContent = `Remaining comments: ${response.count || 0}`;
-      requestCountElement.style.display = 'block';
+      requestCountElement.textContent = `Remaining comments: ${response.count}`;
     } else {
       requestCountElement.textContent = 'Unable to load usage data';
-      requestCountElement.style.display = 'block';
+    }
+    requestCountElement.style.display = 'block';
+  });
+}
+
+function displayPlanType() {
+  chrome.runtime.sendMessage({ action: 'getPlanType' }, (response) => {
+    if (response && response.success) {
+      planTypeElement.textContent = `Plan: ${response.planType}`;
     }
   });
 }
