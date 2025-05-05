@@ -46,6 +46,8 @@ function handleCheckAuthStatus(request, sender, sendResponse) {
   (async () => {
     const authenticated = await isAuthenticated();
     const user = authenticated ? await getCurrentUser() : null;
+    console.log("User:", user);
+    console.log("Authenticated:", authenticated);
     sendResponse({ 
       isAuthenticated: authenticated,
       email: user?.email
@@ -277,11 +279,14 @@ async function streamComment(postContent, tabId, sendResponse) {
   }
 }
 
-// Check if user is authenticated
+// Check if user is authenticated and refresh session if needed
 async function isAuthenticated() {
   try {
     const data = await chrome.storage.local.get('userSession');
-    if (!data.userSession) return false;
+    if (!data.userSession) {
+      console.warn('No user session found');
+      return false;
+    }
     
     // Check if session is expired
     if (data.userSession.expires_at && new Date(data.userSession.expires_at * 1000) < new Date()) {
@@ -406,6 +411,8 @@ async function getUserRequestCount() {
 async function getUserPlanType() {
   return ensureAuthenticated(async () => {
     const user = await getCurrentUser();
+    
+    console.log("Calling get_user_plan_type with User ID:", user.id);
 
     const { data, error } = await supabase.rpc('get_user_plan_type', {
       p_user_id: user.id
@@ -413,7 +420,12 @@ async function getUserPlanType() {
     
     if (error) {
       console.error('Error fetching plan type:', error);
-      return "Free";
+      return null; // Return null if there's an error
+    }
+    
+    console.log("Plan type data:", data);
+    if (!data) {
+      console.warn('No plan type returned for User ID:', user.id);
     }
     
     return data;

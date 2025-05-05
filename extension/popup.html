@@ -1,47 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Supabase Auth</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            width: 250px;
-            padding: 10px;
-        }
-        button {
-            background-color: #4CAF50; /* Green */
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        #signOutButton {
-            background-color: #f44336; /* Red */
-            display: none; /* Hidden by default */
-        }
-        #status {
-            margin-top: 10px;
-            font-size: 12px;
-        }
-        #requestCount {
-            margin-top: 10px;
-            font-size: 12px;
-            display: none; /* Hidden by default */
-        }
-    </style>
+    <title>AVA AI</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <h1>Supabase Auth</h1>
-    <button id="signInButton">Sign in with Google</button>
-    <button id="signOutButton">Sign Out</button>
-    <div id="status">Checking authentication status...</div>
-    <div id="requestCount"></div>
+<body class="popup">
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="icon.png" alt="AVA AI Logo" class="logo">
+                <h1>AVA AI</h1>
+            </div>
+        </div>
+        
+        
+        <!-- Status messages -->
+        <div id="status" class="status-message"></div>
+        
+        <!-- State 1: Not signed in -->
+        <div id="not-signed-in" class="state state-active">
+            <div class="message">
+                Sign in to automatically respond to LinkedIn comments using AI
+            </div>
+            <button id="signInButton">Sign in with Google</button>
+        </div>
+        
+        <!-- State 2: Free Plan -->
+        <div id="free-plan" class="state">
+            <div class="plan-info free-plan">
+                <div>
+                    <span class="plan-badge">FREE PLAN</span>
+                </div>
+                <div class="plan-details">
+                    <div>Basic AI model</div>
+                    <div class="request-count" id="free-request-count">Remaining comments: --</div>
+                </div>
+            </div>
+            <button id="upgradeButton">Upgrade to PRO</button>
+        </div>
+        
+        <!-- State 3: Basic Plan -->
+        <div id="basic-plan" class="state">
+            <div class="plan-info">
+                <div>
+                    <span class="plan-badge">PRO PLAN</span>
+                </div>
+                <div class="plan-details">
+                    <div>Advanced AI model, unlimited comments</div>
+                    <div class="request-count" id="basic-request-count">Unlimited comments</div>
+                </div>
+            </div>
+        </div>
+        <button id="signOutButton">Sign Out</button>
+
+    </div>
+
     <script src="popup.js"></script>
 </body>
 </html>

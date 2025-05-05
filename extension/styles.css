@@ -10,3 +10,158 @@
 }
 
 /* The hover effects will now be handled by LinkedIn's artdeco-button classes */
+
+/* Popup Styles */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:root {
+  --primary: #6E57E0;
+  --primary-dark: #5646B8;
+  --white: #ffffff;
+  --light-gray: #f5f5f5;
+  --text-dark: #333333;
+  --text-light: #666666;
+  --error: #f44336;
+  --success: #4CAF50;
+}
+
+body.popup {
+  font-family: 'Poppins', sans-serif;
+  width: 300px;
+  padding: 16px;
+  background-color: var(--white);
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+button {
+  background-color: var(--primary);
+  border: none;
+  color: var(--white);
+  padding: 10px 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s, transform 0.1s;
+  width: 100%;
+}
+
+button:hover {
+  background-color: var(--primary-dark);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+#signOutButton {
+  background-color: var(--white);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  display: none;
+}
+
+#signOutButton:hover {
+  background-color: var(--light-gray);
+}
+
+#upgradeButton {
+  display: none;
+  margin-bottom: 8px;
+}
+
+.state {
+  display: none;
+}
+
+.state-active {
+  display: block;
+}
+
+.message {
+  background-color: var(--light-gray);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.status-message {
+  font-size: 14px;
+  padding: 8px 0;
+  min-height: 20px;
+}
+
+.plan-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--light-gray);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.plan-badge {
+  display: inline-block;
+  background-color: var(--primary);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.free-plan .plan-badge {
+  background-color: var(--text-light);
+}
+
+.plan-details {
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.request-count {
+  font-weight: 500;
+}
+
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}

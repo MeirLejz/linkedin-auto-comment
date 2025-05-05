@@ -3,89 +3,166 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusElement = document.getElementById('status');
   const signInButton = document.getElementById('signInButton');
   const signOutButton = document.getElementById('signOutButton');
+  const upgradeButton = document.getElementById('upgradeButton');
   
-  // Initially hide sign out button
-  signOutButton.style.display = 'none';
+  // State containers
+  const notSignedInState = document.getElementById('not-signed-in');
+  const freePlanState = document.getElementById('free-plan');
+  const basicPlanState = document.getElementById('basic-plan');
+  
+  // Initially show 'not signed in' state
+  showState('not-signed-in');
+  
+  // Ensure upgrade button is visible when on free plan
+  if (upgradeButton) {
+    upgradeButton.style.display = 'block';
+    
+    // Add click event for upgrade button
+    upgradeButton.addEventListener('click', () => {
+      // Open the upgrade page
+      chrome.tabs.create({ url: 'https://linkedin-auto-comment.vercel.app/' });
+    });
+  }
+  
+  // Set up event listeners for auth buttons
+  signInButton.addEventListener('click', handleSignIn);
+  signOutButton.addEventListener('click', handleSignOut);
   
   // Check if user is authenticated
+  checkAuthStatus();
+});
+
+// Function to check authentication status
+function checkAuthStatus() {
+  const statusElement = document.getElementById('status');
+  
   chrome.runtime.sendMessage({ action: 'checkAuthStatus' }, (response) => {
     if (response && response.isAuthenticated) {
       // User is authenticated
-      statusElement.textContent = `Signed in as ${response.email || 'User'}`;
-      signInButton.style.display = 'none';
-      signOutButton.style.display = 'block';
+      statusElement.textContent = `Welcome, ${response.email || 'User'}!`;
       
-      // Get and display request count
-      displayRequestCount();
+      // Check the user's plan type
+      getPlanInfo();
     } else {
       // User is not authenticated
-      statusElement.textContent = 'Not signed in';
-      signInButton.style.display = 'block';
-      signOutButton.style.display = 'none';
+      showState('not-signed-in');
+      statusElement.textContent = '';
+    }
+  });
+}
+
+// Function to get plan information
+function getPlanInfo() {
+  chrome.runtime.sendMessage({ action: 'getPlanType' }, (planResponse) => {
+    console.log("Plan response:", planResponse);
+    
+    if (planResponse && planResponse.success) {
+      // Convert plan type to lowercase for case-insensitive comparison
+      const planType = planResponse.planType.toLowerCase();
       
-      // Hide request count if any
-      const requestCountElement = document.getElementById('requestCount');
-      if (requestCountElement) {
-        requestCountElement.style.display = 'none';
+      if (planType === 'basic') {
+        // Show PRO plan state
+        showState('basic-plan');
+        displayRequestCount('basic');
+      } else if (planType === 'free') {
+        // Default to free plan
+        showState('free-plan');
+        displayRequestCount('free');
       }
     }
   });
-});
+}
+
+// Function to show the appropriate state and hide others
+function showState(stateId) {
+  const states = ['not-signed-in', 'free-plan', 'basic-plan'];
+  
+  states.forEach(state => {
+    const element = document.getElementById(state);
+    if (element) {
+      if (state === stateId) {
+        element.classList.add('state-active');
+      } else {
+        element.classList.remove('state-active');
+      }
+    }
+  });
+  
+  // Special handling for sign out button visibility
+  const signOutButton = document.getElementById('signOutButton');
+  if (signOutButton) {
+    signOutButton.style.display = (stateId !== 'not-signed-in') ? 'block' : 'none';
+  }
+  
+  // Special handling for upgrade button visibility
+  const upgradeButton = document.getElementById('upgradeButton');
+  if (upgradeButton) {
+    upgradeButton.style.display = (stateId === 'free-plan') ? 'block' : 'none';
+  }
+}
 
 // Function to get and display request count
-function displayRequestCount() {
+function displayRequestCount(plan) {
   chrome.runtime.sendMessage({ action: 'getRequestCount' }, (response) => {
-    // Create or get the request count element
-    let requestCountElement = document.getElementById('requestCount');
-
-    // Display the count
-    if (response && response.success) {
+    const elementId = plan === 'basic' ? 'basic-request-count' : 'free-request-count';
+    const requestCountElement = document.getElementById(elementId);
+    
+    if (!requestCountElement) return;
+    
+    if (plan === 'basic') {
+      requestCountElement.textContent = 'Unlimited comments';
+    } else if (response && response.success) {
       requestCountElement.textContent = `Remaining comments: ${response.count}`;
     } else {
       requestCountElement.textContent = 'Unable to load usage data';
     }
-    requestCountElement.style.display = 'block';
   });
 }
 
-function displayPlanType() {
-  chrome.runtime.sendMessage({ action: 'getPlanType' }, (response) => {
-    if (response && response.success) {
-      planTypeElement.textContent = `Plan: ${response.planType}`;
-    }
-  });
-}
-
-// Listen for the sign in button click
-document.getElementById('signInButton').addEventListener('click', () => {
-  // Update status to show authentication is in progress
+// Handle the sign in button click
+function handleSignIn() {
   const statusElement = document.getElementById('status');
-  statusElement.textContent = 'Authentication in progress...';
+  const signInButton = document.getElementById('signInButton');
+  
+  // Show loading state
+  statusElement.textContent = 'Signing in...';
+  signInButton.textContent = 'Signing in...';
+  signInButton.classList.add('loading');
   
   // Send message to background script to start auth flow
   chrome.runtime.sendMessage({ action: 'startAuthFlow' }, (response) => {
+    signInButton.classList.remove('loading');
+    signInButton.textContent = 'Sign in with Google';
+    
     if (response && response.success) {
-      statusElement.textContent = 'Authentication successful!';
-      document.getElementById('signInButton').style.display = 'none';
-      document.getElementById('signOutButton').style.display = 'block';
+      statusElement.textContent = 'Successfully signed in!';
+      
+      // Check plan type after successful sign-in
+      getPlanInfo();
     } else {
-      statusElement.textContent = response?.error || 'Failed to authenticate.';
+      showState('not-signed-in');
+      statusElement.textContent = response?.error || 'Failed to sign in. Please try again.';
     }
   });
-});
+}
 
-// Listen for the sign out button click
-document.getElementById('signOutButton').addEventListener('click', () => {
+// Handle the sign out button click
+function handleSignOut() {
   const statusElement = document.getElementById('status');
+  const signOutButton = document.getElementById('signOutButton');
+  
+  // Show loading state
   statusElement.textContent = 'Signing out...';
+  signOutButton.classList.add('loading');
   
   chrome.runtime.sendMessage({ action: 'signOut' }, (response) => {
+    signOutButton.classList.remove('loading');
+    
     if (response && response.success) {
-      statusElement.textContent = 'Signed out successfully.';
-      document.getElementById('signInButton').style.display = 'block';
-      document.getElementById('signOutButton').style.display = 'none';
+      statusElement.textContent = 'Successfully signed out.';
+      showState('not-signed-in');
     } else {
-      statusElement.textContent = response?.error || 'Failed to sign out.';
+      statusElement.textContent = response?.error || 'Failed to sign out. Please try again.';
     }
   });
-});
+}
