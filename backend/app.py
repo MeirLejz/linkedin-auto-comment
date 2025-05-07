@@ -102,34 +102,25 @@ def generate_comment_stream(prompt):
     try:
         # Call OpenAI API with streaming enabled
         stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4.1-mini-2025-04-14", # "gpt-4.1-2025-04-14"
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "developer", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=2048,
             temperature=1.0,
             top_p=1.0,
-            stream=True
+            stream=True,
         )
         
         # Stream the response chunks
         for chunk in stream:
             if chunk.choices and chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content
-                content = sanitize_output(content)
+                content = chunk.choices[0].delta.content.replace('—', ',')
                 yield f"data: {json.dumps({'content': content})}\n\n"
                 
         # Send a completion message
         yield f"data: {json.dumps({'done': True})}\n\n"
         
     except Exception as e:
-        print(f"Error in streaming: {str(e)}")
         yield f"data: {json.dumps({'error': str(e)})}\n\n"
-
-
-def sanitize_output(text):
-    # Replace em dashes with commas
-    text = re.sub(r'—', ',', text)
-    # Add more substitutions as needed
-    return text

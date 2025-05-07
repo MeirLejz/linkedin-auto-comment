@@ -213,7 +213,7 @@ function generateComment(buttonElement, commentSection) {
       // Store the input field for later use
       window.currentCommentField = inputField;
     } else {
-      Logger.error("[AVA.AI] Could not find input field for this button");
+      Logger.error("Could not find input field for this button");
     }
     
     // Request comment generation from background script
