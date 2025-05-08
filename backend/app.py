@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from openai import OpenAI
-import json, re, os
+import json, os
 from flask import stream_with_context
 
 IS_DEVELOPMENT = False
