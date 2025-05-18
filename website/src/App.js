@@ -4,7 +4,7 @@ import './styles.css'; // Your provided CSS
 
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
-  process.env.REACT_APP_SUPABASE_ANON_KEY
+  process.env.REACT_APP_SUPABASE_ANON_KEY,
 );
 
 function App() {
@@ -12,6 +12,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const REACT_APP_TEST_MODE = process.env.REACT_APP_TEST_MODE === 'true';
+  const PAYPRO_SECRET_KEY = process.env.PAYPRO_SECRET_KEY;
 
   useEffect(() => {
     const fetchUser = async () => {
