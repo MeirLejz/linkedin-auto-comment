@@ -12,14 +12,27 @@ const supabase = createClient(
 );
 
 const PAYPRO_SECRET_KEY = process.env.REACT_APP_PAYPRO_SECRET_KEY;
+const REACT_APP_TEST_MODE = process.env.REACT_APP_TEST_MODE === 'true';
 
 app.post('/api/webhook', async (req, res) => {
   const data = req.body;
   const receivedHash = data.HASH;
-  const calculatedHash = crypto
-    .createHash('md5')
-    .update(data.ORDER_ID + PAYPRO_SECRET_KEY)
-    .digest('hex');
+  
+  // Calculate hash based on test mode
+  let calculatedHash;
+  if (REACT_APP_TEST_MODE) {
+    // For test orders, hash is always MD5("1")
+    calculatedHash = crypto
+      .createHash('md5')
+      .update('1')
+      .digest('hex');
+  } else {
+    // For real orders, hash is MD5(OrderId+SecretKey)
+    calculatedHash = crypto
+      .createHash('md5')
+      .update(data.ORDER_ID + PAYPRO_SECRET_KEY)
+      .digest('hex');
+  }
 
   if (receivedHash !== calculatedHash) {
     console.error('Webhook hash mismatch');
