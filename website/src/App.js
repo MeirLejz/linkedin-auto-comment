@@ -63,14 +63,14 @@ function App() {
     }
   };
 
-    const generatePaymentLink = () => {
+  const generatePaymentLink = () => {
     if (!user || typeof user.id !== 'string' || !user.id) {
       console.log('User data not fully loaded yet');
       return '#';
     }
     const userId = user.id;
     const baseUrl = `https://store.payproglobal.com/checkout?products[1][id]=112482&x-user_id=${userId}`;
-    return REACT_APP_TEST_MODE ? `${baseUrl}&use-test-mode=true` : baseUrl;
+    return TEST_MODE ? `${baseUrl}&use-test-mode=true&secret-key=${PAYPRO_SECRET_KEY}` : baseUrl;
   };
 
   if (loading) {
