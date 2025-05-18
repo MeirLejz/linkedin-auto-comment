@@ -70,7 +70,7 @@ function App() {
     }
     const userId = user.id;
     const baseUrl = `https://store.payproglobal.com/checkout?products[1][id]=112482&x-user_id=${userId}`;
-    return TEST_MODE ? `${baseUrl}&use-test-mode=true&secret-key=${PAYPRO_SECRET_KEY}` : baseUrl;
+    return REACT_APP_TEST_MODE ? `${baseUrl}&use-test-mode=true&secret-key=${PAYPRO_SECRET_KEY}` : baseUrl;
   };
 
   if (loading) {
