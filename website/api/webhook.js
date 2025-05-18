@@ -42,9 +42,12 @@ app.post('/api/webhook', async (req, res) => {
   if (data.IPN_TYPE_ID === '1') { // OrderCharged
     const customFields = data.ORDER_CUSTOM_FIELDS || '';
     const userIdMatch = customFields.match(/x-user_id=([^&]*)/);
+    
+    console.log(`Processing webhook with customFields: ${customFields}`);
+    
     if (!userIdMatch) {
-      console.error('No user_id found in webhook');
-      return res.status(400).send('Missing user_id in custom fields');
+      console.error('No user ID found in custom fields:', customFields);
+      return res.status(400).send('No user ID found in custom fields');
     }
 
     const userId = userIdMatch[1];
@@ -59,7 +62,7 @@ app.post('/api/webhook', async (req, res) => {
       }, { onConflict: 'user_id' });
 
     if (error) {
-      console.error('Supabase update error:', error);
+      console.error(`Supabase update error for userId ${userId} (customFields: ${customFields}):`, error);
       return res.status(500).send(`Database update failed: ${error.message}`);
     }
     return res.status(200).send('Plan updated successfully');
