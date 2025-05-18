@@ -13,7 +13,7 @@ const supabase = createClient(
 
 const PAYPRO_SECRET_KEY = process.env.REACT_APP_PAYPRO_SECRET_KEY;
 
-app.post('/webhook', async (req, res) => {
+app.post('/api/webhook', async (req, res) => {
   const data = req.body;
   const receivedHash = data.HASH;
   const calculatedHash = crypto
