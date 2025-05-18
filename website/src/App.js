@@ -39,14 +39,6 @@ function App() {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
-  console.log('Environment Variables:', {
-    SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL,
-    SUPABASE_ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY,
-    TEST_MODE: process.env.REACT_APP_TEST_MODE,
-  });
-
-  console.log('Supabase Client:', supabase);
-
   const handleSignIn = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
