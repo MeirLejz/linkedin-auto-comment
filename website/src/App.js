@@ -16,12 +16,15 @@ function App() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) throw error;
-        setUser(user);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn('No session found:', error.message);
+          setUser(null);
+        } else {
+          setUser(session?.user ?? null);
+        }
       } catch (err) {
-        setError('Failed to load user. Please try refreshing the page.');
-        console.error(err);
+        console.error('Error fetching user session:', err);
       } finally {
         setLoading(false);
       }
@@ -35,6 +38,14 @@ function App() {
 
     return () => authListener.subscription.unsubscribe();
   }, []);
+
+  console.log('Environment Variables:', {
+    SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY,
+    TEST_MODE: process.env.REACT_APP_TEST_MODE,
+  });
+
+  console.log('Supabase Client:', supabase);
 
   const handleSignIn = async () => {
     try {
