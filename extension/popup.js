@@ -56,7 +56,7 @@ function getPlanInfo() {
   chrome.runtime.sendMessage({ action: 'getPlanType' }, (planResponse) => {
     console.log("Plan response:", planResponse);
     
-    if (planResponse && planResponse.success) {
+    if (planResponse && planResponse.success && planResponse.planType) {
       // Convert plan type to lowercase for case-insensitive comparison
       const planType = planResponse.planType.toLowerCase();
       
@@ -69,6 +69,11 @@ function getPlanInfo() {
         showState('free-plan');
         displayRequestCount('free');
       }
+    } else {
+      // Handle error case - default to free plan or show error
+      console.error("Invalid plan response:", planResponse);
+      showState('free-plan');
+      displayRequestCount('free');
     }
   });
 }
