@@ -7,10 +7,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.REACT_APP_SUPABASE_URL,
+  process.env.REACT_APP_SUPABASE_ANON_KEY,
 );
-const PAYPRO_SECRET_KEY = process.env.PAYPRO_SECRET_KEY;
+
+const PAYPRO_SECRET_KEY = process.env.REACT_APP_PAYPRO_SECRET_KEY;
 
 app.post('/webhook', async (req, res) => {
   const data = req.body;
