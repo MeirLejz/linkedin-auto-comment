@@ -12,7 +12,13 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const REACT_APP_TEST_MODE = process.env.REACT_APP_TEST_MODE === 'true';
-  const PAYPRO_SECRET_KEY = process.env.PAYPRO_SECRET_KEY;
+  const PAYPRO_SECRET_KEY = process.env.REACT_APP_PAYPRO_SECRET_KEY;
+
+  useEffect(() => {
+    console.log('Environment variables:');
+    console.log('REACT_APP_TEST_MODE:', process.env.REACT_APP_TEST_MODE);
+    console.log('PAYPRO_SECRET_KEY value:', process.env.REACT_APP_PAYPRO_SECRET_KEY);
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -71,6 +77,11 @@ function App() {
     }
     const userId = user.id;
     const baseUrl = `https://store.payproglobal.com/checkout?products[1][id]=112482&x-user_id=${userId}`;
+    
+    console.log('Generating payment link:');
+    console.log('Test mode:', REACT_APP_TEST_MODE);
+    console.log('Secret key available:', !!PAYPRO_SECRET_KEY);
+    
     return REACT_APP_TEST_MODE ? `${baseUrl}&use-test-mode=true&secret-key=${PAYPRO_SECRET_KEY}` : baseUrl;
   };
 
