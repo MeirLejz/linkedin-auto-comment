@@ -4,6 +4,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
