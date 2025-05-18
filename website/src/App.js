@@ -12,12 +12,12 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const REACT_APP_TEST_MODE = process.env.REACT_APP_TEST_MODE === 'true';
-  const PAYPRO_SECRET_KEY = process.env.REACT_APP_PAYPRO_SECRET_KEY;
+  const PAYPRO_SECRET_KEY = process.env.PAYPRO_SECRET_KEY;
 
   useEffect(() => {
     console.log('Environment variables:');
     console.log('REACT_APP_TEST_MODE:', process.env.REACT_APP_TEST_MODE);
-    console.log('PAYPRO_SECRET_KEY value:', process.env.REACT_APP_PAYPRO_SECRET_KEY);
+    console.log('PAYPRO_SECRET_KEY value:', process.env.PAYPRO_SECRET_KEY);
   }, []);
 
   useEffect(() => {
