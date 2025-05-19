@@ -289,10 +289,17 @@ async function isAuthenticated() {
     }
     
     // Check if session is expired
-    if (data.userSession.expires_at && new Date(data.userSession.expires_at * 1000) < new Date()) {
+    const expiresAt = data.userSession.expires_at;
+    const expiryDate = new Date(expiresAt * 1000);
+    const currentDate = new Date();
+    
+    console.log(`Session expiry check - Expires: ${expiryDate.toISOString()}, Current: ${currentDate.toISOString()}, Diff: ${(expiryDate - currentDate) / 1000 / 60} minutes`);
+    
+    if (expiresAt && expiryDate < currentDate) {
       console.log('Session expired, attempting refresh');
       // Try to refresh the token
       const refreshed = await refreshToken(data.userSession.refresh_token);
+      console.log('Token refresh result:', refreshed);
       return refreshed;
     }
     
@@ -383,7 +390,9 @@ async function signOutUser() {
 async function ensureAuthenticated(action) {
   const authenticated = await isAuthenticated();
   if (!authenticated) {
-    const refreshed = await refreshToken();
+    // Get the stored session to extract refresh token
+    const data = await chrome.storage.local.get('userSession');
+    const refreshed = await refreshToken(data.userSession?.refresh_token);
     if (!refreshed) {
       throw new Error('Authentication failed. Please sign in again.');
     }

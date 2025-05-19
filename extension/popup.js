@@ -52,7 +52,7 @@ function checkAuthStatus() {
 }
 
 // Function to get plan information
-function getPlanInfo() {
+function getPlanInfo(retryCount = 0, maxRetries = 3) {
   chrome.runtime.sendMessage({ action: 'getPlanType' }, (planResponse) => {
     console.log("Plan response:", planResponse);
     
@@ -60,6 +60,8 @@ function getPlanInfo() {
       // Convert plan type to lowercase for case-insensitive comparison
       const planType = planResponse.planType.toLowerCase();
       
+      console.log('planType:', planType);
+
       if (planType === 'basic') {
         // Show PRO plan state
         showState('basic-plan');
@@ -70,10 +72,19 @@ function getPlanInfo() {
         displayRequestCount('free');
       }
     } else {
-      // Handle error case - default to free plan or show error
-      console.error("Invalid plan response:", planResponse);
-      showState('free-plan');
-      displayRequestCount('free');
+      // Handle error case - attempt retry if under max retries
+      console.error("Invalid plan response:", planResponse, `Retry attempt: ${retryCount+1}/${maxRetries+1}`);
+      
+      if (retryCount < maxRetries) {
+        console.log(`Retrying getPlanInfo in ${(retryCount+1)*500}ms...`);
+        // Exponential backoff: increase wait time with each retry
+        setTimeout(() => getPlanInfo(retryCount + 1, maxRetries), (retryCount+1) * 500);
+      } else {
+        // After max retries, default to free plan
+        console.error("Max retries reached. Defaulting to free plan.");
+        showState('free-plan');
+        displayRequestCount('free');
+      }
     }
   });
 }
