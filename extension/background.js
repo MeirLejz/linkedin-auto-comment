@@ -81,7 +81,8 @@ function handleGenerateComment(request, sender, sendResponse) {
     if (error || !data) {
       sendResponse({ 
         success: false, 
-        error: "No remaining requests. Please upgrade your plan or try again later." 
+        error: "No remaining requests. Please upgrade your plan or try again later.",
+        code: "NO_CREDITS"
       });
       return;
     }
@@ -135,7 +136,7 @@ function startAuthFlow() {
       
       console.log('Auth URL:', url.href); // Debugging
       console.log("Extension ID:", chrome.runtime.id);
-      
+    
       chrome.identity.launchWebAuthFlow(
         {
           url: url.href,
@@ -152,19 +153,42 @@ function startAuthFlow() {
               const url = new URL(redirectedTo);
               const params = new URLSearchParams(url.hash.replace('#', ''));
 
-              // Call Supabase auth with the ID token
-              const { data, error } = await supabase.auth.signInWithIdToken({
+              // Assuming you have the user object from the sign-in process
+              const { user, error } = await supabase.auth.signInWithIdToken({
                 provider: 'google',
                 token: params.get('id_token'),
               });
-              
+
+              // Check for errors
+              if (error) {
+                console.error('Sign-in error:', error);
+              } else {
+                console.log('User signed in:', user);
+
+                // Get the current session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError) {
+                  console.error('Error fetching session:', sessionError);
+                } else {
+                  console.log('Current session:', session);
+
+                  // Check if the user is authenticated
+                  if (session) {
+                    console.log('User is authenticated:', session.user);
+                    console.log('User ID:', session.user.id);
+                    console.log('User Email:', session.user.email);
+                    // You can also check other session properties if needed
+                    await storeUserSession(session);
+                    resolve({ success: true });
+                  } else {
+                    console.log('User is not authenticated');
+                  }
+                }
+              }
               if (error) {
                 console.error('Supabase authentication error:', error);
                 reject(error);
-              } else {
-                // Store the session
-                await storeUserSession(data.session);
-                resolve({ success: true });
               }
             } catch (error) {
               console.error('Error processing auth response:', error);

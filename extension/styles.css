@@ -65,7 +65,7 @@ h1 {
   margin: 0;
 }
 
-button {
+body.popup button {
   background-color: var(--primary);
   border: none;
   color: var(--white);
@@ -84,11 +84,11 @@ button {
   width: 100%;
 }
 
-button:hover {
+body.popup button:hover {
   background-color: var(--primary-dark);
 }
 
-button:active {
+body.popup button:active {
   transform: scale(0.98);
 }
 
@@ -164,4 +164,57 @@ button:active {
 .loading {
   opacity: 0.7;
   pointer-events: none;
+}
+
+.ava-ai-message-popup {
+  position: fixed;
+  min-width: 280px;
+  max-width: 320px;
+  background: var(--white, #fff);
+  color: var(--text-dark, #222);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 1.5px 4px rgba(0,0,0,0.08);
+  padding: 20px 20px 16px 20px;
+  font-family: 'Poppins', Arial, sans-serif;
+  font-size: 15px;
+  z-index: 99999;
+  border: 1px solid #ececec;
+  animation: ava-ai-message-popup-fadein 0.2s;
+}
+
+.ava-ai-message-popup-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.ava-ai-message-popup-body {
+  font-size: 14px;
+  margin-bottom: 16px;
+  color: var(--text-light, #555);
+}
+
+.ava-ai-message-popup-action {
+  display: inline-block;
+  background: var(--primary, #6E57E0);
+  color: #fff !important;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: background 0.18s;
+  margin-top: 4px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+}
+
+.ava-ai-message-popup-action:hover {
+  background: var(--primary-dark, #5646B8);
+}
+
+@keyframes ava-ai-message-popup-fadein {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
 }
