@@ -218,3 +218,19 @@ body.popup button:active {
   from { opacity: 0; transform: translateY(10px);}
   to { opacity: 1; transform: translateY(0);}
 }
+
+/* Popup-specific: Manage subscription link styling */
+.popup .ava-ai-manage-link {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  text-align: right;
+  margin-top: 8px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.popup .ava-ai-manage-link:hover {
+  text-decoration: underline;
+  color: #555;
+}

@@ -115,6 +115,12 @@ function showState(stateId) {
   if (upgradeButton) {
     upgradeButton.style.display = (stateId === 'free-plan') ? 'block' : 'none';
   }
+
+  // Show "Manage subscription" link only for PRO plan
+  const manageLink = document.getElementById('manageSubscriptionLink');
+  if (manageLink) {
+    manageLink.style.display = (stateId === 'basic-plan') ? 'block' : 'none';
+  }
 }
 
 // Function to get and display request count
