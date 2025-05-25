@@ -12,6 +12,7 @@ root.render(
     <Routes>
       <Route path="/" element={<App />} />
       <Route path="/success" element={<Success />} />
+      <Route path="/manage-subscription" element={<ManageSubscription />} />
     </Routes>
   </Router>
 );
