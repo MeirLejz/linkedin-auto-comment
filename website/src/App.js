@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import './styles.css'; // Your provided CSS
-
-const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL,
-  process.env.REACT_APP_SUPABASE_ANON_KEY,
-);
+import { supabase } from './supabaseClient';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -158,13 +153,10 @@ function App() {
         )}
       </main>
 
-      <footer>
-        <div className="footer-content">
-          <div className="footer-section">
-            <h3>LinkedIn Auto Comment</h3>
-            <p>© 2023 All rights reserved.</p>
-          </div>
-        </div>
+      <footer className="bg-gray-800 text-white p-4 text-center">
+        <Link to="/manage-subscription" className="text-blue-300 hover:underline">
+          Manage Subscription
+        </Link>
       </footer>
     </div>
   );
