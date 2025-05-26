@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './styles.css'; // Your provided CSS
 import { supabase } from './supabaseClient';
+import { Link } from 'react-router-dom';
 
 function App() {
   const [user, setUser] = useState(null);
