@@ -6,12 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const upgradeButton = document.getElementById('upgradeButton');
   
   // State containers
+  const loadingState = document.getElementById('loading');
   const notSignedInState = document.getElementById('not-signed-in');
   const freePlanState = document.getElementById('free-plan');
   const basicPlanState = document.getElementById('basic-plan');
   
-  // Initially show 'not signed in' state
-  showState('not-signed-in');
+  // Initially show loading state
+  showState('loading');
   
   // Ensure upgrade button is visible when on free plan
   if (upgradeButton) {
@@ -81,9 +82,9 @@ function getPlanInfo(retryCount = 0, maxRetries = 3) {
         setTimeout(() => getPlanInfo(retryCount + 1, maxRetries), (retryCount+1) * 500);
       } else {
         // After max retries, default to free plan
-        console.error("Max retries reached. Defaulting to free plan.");
-        showState('free-plan');
-        displayRequestCount('free');
+        console.error("Max retries reached. Signing out.");
+        showState('not-signed-in');
+        handleSignOut();
       }
     }
   });
@@ -91,7 +92,7 @@ function getPlanInfo(retryCount = 0, maxRetries = 3) {
 
 // Function to show the appropriate state and hide others
 function showState(stateId) {
-  const states = ['not-signed-in', 'free-plan', 'basic-plan'];
+  const states = ['loading', 'not-signed-in', 'free-plan', 'basic-plan'];
   
   states.forEach(state => {
     const element = document.getElementById(state);
@@ -107,7 +108,7 @@ function showState(stateId) {
   // Special handling for sign out button visibility
   const signOutButton = document.getElementById('signOutButton');
   if (signOutButton) {
-    signOutButton.style.display = (stateId !== 'not-signed-in') ? 'block' : 'none';
+    signOutButton.style.display = (stateId !== 'not-signed-in' && stateId !== 'loading') ? 'block' : 'none';
   }
   
   // Special handling for upgrade button visibility

@@ -17,8 +17,16 @@
         <!-- Status messages -->
         <div id="status" class="status-message"></div>
         
+        <!-- State 0: Loading -->
+        <div id="loading" class="state state-active">
+            <div class="loading-info">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Loading...</div>
+            </div>
+        </div>
+        
         <!-- State 1: Not signed in -->
-        <div id="not-signed-in" class="state state-active">
+        <div id="not-signed-in" class="state">
             <div class="message">
                 Sign in to automatically respond to LinkedIn comments using AI
             </div>
@@ -51,7 +59,7 @@
                 </div>
             </div>
             <a
-              href="https://linkedin-auto-comment.vercel.app/"
+              href="https://linkedin-auto-comment.vercel.app/manage-subscription"
               target="_blank"
               id="manageSubscriptionLink"
               class="ava-ai-manage-link"

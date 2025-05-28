@@ -92,44 +92,44 @@ body.popup button:active {
   transform: scale(0.98);
 }
 
-#signOutButton {
+body.popup #signOutButton {
   background-color: var(--white);
   color: var(--primary);
   border: 1px solid var(--primary);
   display: none;
 }
 
-#signOutButton:hover {
+body.popup #signOutButton:hover {
   background-color: var(--light-gray);
 }
 
-#upgradeButton {
+body.popup #upgradeButton {
   display: none;
   margin-bottom: 8px;
 }
 
-.state {
+body.popup .state {
   display: none;
 }
 
-.state-active {
+body.popup .state-active {
   display: block;
 }
 
-.message {
+body.popup .message {
   background-color: var(--light-gray);
   border-radius: 8px;
   padding: 12px;
   font-size: 14px;
 }
 
-.status-message {
+body.popup .status-message {
   font-size: 14px;
   padding: 8px 0;
   min-height: 20px;
 }
 
-.plan-info {
+body.popup .plan-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -138,7 +138,7 @@ body.popup button:active {
   padding: 12px;
 }
 
-.plan-badge {
+body.popup .plan-badge {
   display: inline-block;
   background-color: var(--primary);
   color: var(--white);
@@ -148,22 +148,55 @@ body.popup button:active {
   border-radius: 4px;
 }
 
-.free-plan .plan-badge {
+body.popup .free-plan .plan-badge {
   background-color: var(--text-light);
 }
 
-.plan-details {
+body.popup .plan-details {
   font-size: 14px;
   margin-top: 8px;
 }
 
-.request-count {
+body.popup .request-count {
   font-weight: 500;
 }
 
-.loading {
+body.popup .loading {
   opacity: 0.7;
   pointer-events: none;
+}
+
+/* Popup-specific loading state styles */
+body.popup .loading-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--light-gray);
+  border-radius: 8px;
+  padding: 20px 12px;
+  text-align: center;
+}
+
+body.popup .loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--light-gray);
+  border-top: 2px solid var(--primary);
+  border-radius: 50%;
+  animation: popup-loading-spin 1s linear infinite;
+}
+
+body.popup .loading-text {
+  font-size: 14px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+/* Popup-specific keyframe animation */
+@keyframes popup-loading-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .ava-ai-message-popup {
