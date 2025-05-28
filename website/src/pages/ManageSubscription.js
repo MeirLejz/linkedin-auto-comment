@@ -66,7 +66,7 @@ export default function ManageSubscription() {
         },
         body: JSON.stringify({ subscriptionId })
       });
-
+      console.log('API response:', response);
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.message || 'Failed to cancel subscription');
