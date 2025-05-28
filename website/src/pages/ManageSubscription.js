@@ -57,7 +57,7 @@ export default function ManageSubscription() {
     setError('');
 
     try {
-      const response = await fetch('/api/terminate-subscription', {
+      const response = await fetch('../../api/terminate-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
