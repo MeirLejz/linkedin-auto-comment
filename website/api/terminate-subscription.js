@@ -10,7 +10,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-app.post('/terminate-subscription', async (req, res) => {
+app.post('/api/terminate-subscription', async (req, res) => {
   const { subscriptionId } = req.body;
   const authHeader = req.headers.authorization;
 
