@@ -68,12 +68,17 @@ export default function ManageSubscription() {
       });
       console.log('API response:', response);
       const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to cancel subscription');
-      }
+      console.log('API result:', result);
 
-      setSubscriptionId(null);
-      setError('Subscription canceled successfully.');
+      if (!response.ok) {
+        // Access the message field from the result object
+        alert(result.message); // or handle as needed
+      } else {
+        // Success case
+        alert(result.message); // e.g., "Subscription canceled successfully"
+        setSubscriptionId(null);
+        setError('Subscription canceled successfully.');
+      }
     } catch (err) {
       console.error('Cancellation error:', err);
       setError(err.message || 'Failed to cancel subscription. Please try again.');
