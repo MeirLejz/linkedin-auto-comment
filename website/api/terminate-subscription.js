@@ -17,7 +17,7 @@ app.post('/api/terminate-subscription', async (req, res) => {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Missing or invalid authorization token' });
   }
-
+  console.log('Subscription ID:', subscriptionId);
   if (!subscriptionId || isNaN(subscriptionId)) {
     return res.status(400).json({ message: 'Invalid or missing subscriptionId' });
   }

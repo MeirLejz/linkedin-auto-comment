@@ -55,7 +55,7 @@ export default function ManageSubscription() {
 
     setLoading(true);
     setError('');
-
+    console.log('Subscription ID:', subscriptionId);
     try {
       const response = await fetch('/api/terminate-subscription', {
         method: 'POST',
