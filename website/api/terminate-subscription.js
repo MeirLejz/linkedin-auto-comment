@@ -19,7 +19,7 @@ app.post('/api/terminate-subscription', async (req, res) => {
   }
   console.log('Subscription ID:', subscriptionId);
   if (!subscriptionId || isNaN(subscriptionId)) {
-    return res.status(400).json({ statusText: 'Invalid or missing subscriptionId' });
+    return res.status(400).json({ statusText: `Invalid or missing subscriptionId: ${subscriptionId}` });
   }
 
   try {
