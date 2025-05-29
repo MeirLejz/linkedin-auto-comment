@@ -8,6 +8,9 @@ import { Footer } from './components/Footer';
 import { generatePaymentLink } from './services';
 import { useAuth } from './hooks/useAuth';
 
+import './styles/variables.css';
+import './styles/global.css';
+
 function App() {
   const { user, loading, error, handleSignIn, handleSignOut } = useAuth();
 
