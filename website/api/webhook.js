@@ -1,38 +1,21 @@
 const express = require('express');
-const crypto = require('crypto');
-const { createClient } = require('@supabase/supabase-js');
+const { supabase } = require('./utils/supabaseClient');
+const { calculateWebhookHash } = require('./utils/hashUtils');
+const { 
+  IPN_TYPES,
+  PLAN_TYPES
+} = require('./utils/constants');
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-const PAYPRO_SECRET_KEY = process.env.REACT_APP_PAYPRO_SECRET_KEY;
-const REACT_APP_TEST_MODE = process.env.REACT_APP_TEST_MODE === 'true';
 
 app.post('/api/webhook', async (req, res) => {
   const data = req.body;
   const receivedHash = data.HASH;
 
   // Calculate hash based on test mode
-  let calculatedHash;
-  if (REACT_APP_TEST_MODE) {
-    // For test orders, hash is MD5("1")
-    calculatedHash = crypto
-      .createHash('md5')
-      .update('1')
-      .digest('hex');
-  } else {
-    // For real orders, hash is MD5(OrderId+SecretKey)
-    calculatedHash = crypto
-      .createHash('md5')
-      .update(data.ORDER_ID + PAYPRO_SECRET_KEY)
-      .digest('hex');
-  }
+  const calculatedHash = calculateWebhookHash(data.ORDER_ID);
 
   if (receivedHash !== calculatedHash) {
     console.error('Webhook hash mismatch', { receivedHash, calculatedHash });
@@ -40,7 +23,7 @@ app.post('/api/webhook', async (req, res) => {
   }
 
   // Handle OrderCharged (subscription purchase)
-  if (data.IPN_TYPE_ID === '1') {
+  if (data.IPN_TYPE_ID === IPN_TYPES.ORDER_CHARGED) {
     const customFields = data.ORDER_CUSTOM_FIELDS || '';
     const userIdMatch = customFields.match(/x-user_id=([^&]*)/);
     const subscriptionId = parseInt(data.SUBSCRIPTION_ID, 10);
@@ -63,7 +46,7 @@ app.post('/api/webhook', async (req, res) => {
       .from('app_users')
       .upsert({
         user_id: userId,
-        plan_type: 'basic',
+        plan_type: PLAN_TYPES.BASIC,
         start_date: now,
         last_renewal_date: now,
         subscription_id: subscriptionId
@@ -79,7 +62,7 @@ app.post('/api/webhook', async (req, res) => {
   }
 
   // Handle SubscriptionTerminated (cancellation)
-  if (data.IPN_TYPE_ID === '10') {
+  if (data.IPN_TYPE_ID === IPN_TYPES.SUBSCRIPTION_TERMINATED) {
     const subscriptionId = parseInt(data.SUBSCRIPTION_ID, 10);
 
     console.log(`Processing SubscriptionTerminated webhook: subscriptionId=${subscriptionId}`);
@@ -92,7 +75,7 @@ app.post('/api/webhook', async (req, res) => {
     const { error } = await supabase
       .from('app_users')
       .update({
-        plan_type: 'free',
+        plan_type: PLAN_TYPES.FREE,
         subscription_id: null,
         last_renewal_date: null
       })

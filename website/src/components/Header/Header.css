@@ -1,0 +1,103 @@
+/* Header specific styles */
+header {
+  background-color: var(--white);
+  color: var(--dark-gray);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo-container img {
+  height: 40px;
+  margin-right: 0.75rem;
+  transition: transform 0.3s ease;
+}
+
+.logo-container:hover img {
+  transform: scale(1.1);
+}
+
+header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: var(--purple);
+  font-weight: bold;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: var(--dark-gray);
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+  color: var(--purple);
+}
+
+nav ul li a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--purple);
+  transition: width 0.3s ease;
+}
+
+nav ul li a:hover::after {
+  width: 100%;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.sign-in-btn, .sign-out-btn {
+  background: transparent;
+  border: 1px solid var(--purple);
+  color: var(--purple);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sign-in-btn:hover, .sign-out-btn:hover {
+  background-color: var(--purple);
+  color: var(--white);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  
+  nav ul {
+    margin: 1rem 0;
+    gap: 1rem;
+  }
+}

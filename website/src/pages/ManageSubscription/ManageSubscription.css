@@ -1,0 +1,86 @@
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.manage-subscription {
+  flex: 1;
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.manage-subscription h1 {
+  color: var(--purple);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.auth-prompt {
+  text-align: center;
+}
+
+.subscription-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.subscription-status {
+  font-size: 1.1rem;
+  color: var(--dark-gray);
+  text-align: center;
+}
+
+.subscription-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cancel-button {
+  background-color: var(--purple);
+  color: var(--white);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.cancel-button:hover:not(.loading) {
+  background-color: var(--purple-dark);
+  transform: translateY(-2px);
+}
+
+.cancel-button.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.back-button {
+  background: transparent;
+  color: var(--purple);
+  border: 1px solid var(--purple);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.back-button:hover {
+  background-color: var(--purple);
+  color: var(--white);
+}
+
+.error-message {
+  color: #dc2626;
+  text-align: center;
+  margin-top: 0.5rem;
+}

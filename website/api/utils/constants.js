@@ -1,0 +1,36 @@
+// Environment variables
+const PAYPRO_SECRET_KEY = process.env.REACT_APP_PAYPRO_SECRET_KEY;
+const REACT_APP_TEST_MODE = process.env.REACT_APP_TEST_MODE === 'true';
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const PAYPRO_VENDOR_ACCOUNT_ID = process.env.REACT_APP_PAYPRO_VENDOR_ACCOUNT_ID;
+const PAYPRO_API_SECRET_KEY = process.env.PAYPRO_API_SECRET_KEY;
+
+// API URLs
+const PAYPRO_API_URL = 'https://store.payproglobal.com/api';
+const PAYPRO_TERMINATE_URL = `${PAYPRO_API_URL}/Subscriptions/Terminate`;
+
+// IPN Types
+const IPN_TYPES = {
+  ORDER_CHARGED: '1',
+  SUBSCRIPTION_TERMINATED: '10'
+};
+
+// Plan Types
+const PLAN_TYPES = {
+  FREE: 'free',
+  BASIC: 'basic'
+};
+
+module.exports = {
+  PAYPRO_SECRET_KEY,
+  REACT_APP_TEST_MODE,
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
+  PAYPRO_VENDOR_ACCOUNT_ID,
+  PAYPRO_API_SECRET_KEY,
+  PAYPRO_API_URL,
+  PAYPRO_TERMINATE_URL,
+  IPN_TYPES,
+  PLAN_TYPES
+}; 

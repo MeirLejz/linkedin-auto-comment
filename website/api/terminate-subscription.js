@@ -1,14 +1,15 @@
 const express = require('express');
-const { createClient } = require('@supabase/supabase-js');
+const { supabase } = require('./utils/supabaseClient');
+const { 
+  PAYPRO_TERMINATE_URL, 
+  PAYPRO_VENDOR_ACCOUNT_ID, 
+  PAYPRO_API_SECRET_KEY,
+  PLAN_TYPES
+} = require('./utils/constants');
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
 
 app.post('/api/terminate-subscription', async (req, res) => {
   const { subscriptionId } = req.body;
@@ -43,13 +44,13 @@ app.post('/api/terminate-subscription', async (req, res) => {
     }
 
     // Call PayPro Global API
-    const response = await fetch('https://store.payproglobal.com/api/Subscriptions/Terminate', {
+    const response = await fetch(PAYPRO_TERMINATE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         subscriptionId: parseInt(subscriptionId, 10),
-        vendorAccountId: process.env.REACT_APP_PAYPRO_VENDOR_ACCOUNT_ID,
-        apiSecretKey: process.env.PAYPRO_API_SECRET_KEY,
+        vendorAccountId: PAYPRO_VENDOR_ACCOUNT_ID,
+        apiSecretKey: PAYPRO_API_SECRET_KEY,
         sendCustomerNotification: true,
         cancellationReasonId: 2 // "I no longer need this product"
       })
@@ -65,7 +66,7 @@ app.post('/api/terminate-subscription', async (req, res) => {
     const { error: updateError } = await supabase
       .from('app_users')
       .update({
-        plan_type: 'free',
+        plan_type: PLAN_TYPES.FREE,
         subscription_id: null,
         last_renewal_date: null
       })
