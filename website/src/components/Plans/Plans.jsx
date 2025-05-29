@@ -30,7 +30,7 @@ export const Plans = ({ user, onSignIn, generatePaymentLink }) => {
         price="$10/month"
         features={proPlanFeatures}
         buttonText={user ? "Upgrade to Pro" : "Sign In to Upgrade"}
-        buttonLink={user ? generatePaymentLink : null}
+        buttonLink={user ? generatePaymentLink() : null}
         onButtonClick={!user ? onSignIn : null}
       />
     </section>
