@@ -9,13 +9,16 @@ export const PlanCard = ({
   buttonText, 
   buttonLink, 
   onButtonClick,
-  isFree = false 
+  isFree = false,
+  highlighted = false,
+  tag = 'Most Popular',
 }) => {
   return (
-    <div className={`plan-card${isFree ? ' free-plan' : ''}`}> 
+    <div className={`plan-card${isFree ? ' free-plan' : ''}${highlighted ? ' plan-highlight' : ''}`}> 
+      {highlighted && <div className="plan-tag">{tag}</div>}
       <div className="plan-title">{title}</div>
       <div className="plan-price-row">
-        <span className="plan-price">0</span>
+        <span className="plan-price">{price}</span>
         <span className="plan-currency">{currency}</span>
         <span className="plan-per">/ month</span>
       </div>
