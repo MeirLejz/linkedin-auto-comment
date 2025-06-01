@@ -1,6 +1,8 @@
 /* Header specific styles */
 header {
-  background-color: var(--white);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--dark-gray);
   position: sticky;
   top: 0;
@@ -14,7 +16,7 @@ header .container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 3.5rem;
+  padding: 1rem 6rem;
 }
 
 .logo-container {

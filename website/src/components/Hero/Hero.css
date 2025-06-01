@@ -8,6 +8,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
+  padding: 1rem 6rem;
 }
 
 .hero-content {
