@@ -23,7 +23,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
+    <div className="container min-h-screen flex flex-col">
       <Header user={user} onSignOut={handleSignOut} onSignIn={handleSignIn} />
 
       <main>
