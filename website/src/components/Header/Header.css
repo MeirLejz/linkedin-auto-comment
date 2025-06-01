@@ -14,7 +14,7 @@ header .container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 2rem 2rem;
+  padding: 1rem 2rem;
 }
 
 .logo-container {
