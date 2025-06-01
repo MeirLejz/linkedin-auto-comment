@@ -14,7 +14,7 @@ header .container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 2rem 2rem;
 }
 
 .logo-container {
@@ -34,7 +34,7 @@ header .container {
 
 .logo-text {
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin: 0;
   font-weight: bold;
   display: flex;
@@ -50,7 +50,7 @@ header .container {
 }
 
 header h1 {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   margin: 0;
   color: var(--purple);
   font-weight: bold;
@@ -98,9 +98,10 @@ nav ul li a:hover::after {
   background: transparent;
   border: 1px solid var(--purple);
   color: var(--purple);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  font-weight: 300;
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
 }
@@ -114,10 +115,10 @@ nav ul li a:hover::after {
   background-color: var(--purple);
   color: var(--white);
   border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 5px;
+  padding: 0.4rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 300;
   margin-right: 0.5rem;
   cursor: pointer;
   transition: background 0.3s, box-shadow 0.3s, color 0.3s;
