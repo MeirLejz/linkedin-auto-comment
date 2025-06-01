@@ -4,6 +4,11 @@ footer {
   padding: 4rem 2rem 2rem;
 }
 
+footer .container {
+  display: flex;
+  justify-content: center;
+}
+
 footer a {
   color: var(--purple-light);
   text-decoration: none;

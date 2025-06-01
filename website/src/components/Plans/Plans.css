@@ -6,6 +6,11 @@
   gap: 2rem;
   padding: 2rem 0;
   flex-direction: column;
+}
+
+.plans > .container {
+  display: flex;
+  flex-direction: column;
   align-items: center;
 }
 

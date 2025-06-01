@@ -2,16 +2,19 @@
 header {
   background-color: var(--white);
   color: var(--dark-gray);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2rem;
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
 }
 
 .logo-container {
