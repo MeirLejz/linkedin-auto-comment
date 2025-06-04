@@ -5,7 +5,7 @@ import Footer from './components/Footer';
 import { generatePaymentLink } from './services';
 import { useAuth } from './hooks/useAuth';
 import Plans from './components/Plans'
-import './styles/variables.css';
+// import './styles/variables.css';
 import './styles/global.css';
 import WhyCommentCard from './components/WhyCommentCard';
 import HowItWorksCard from './components/HowItWorksCard';
