@@ -1,9 +1,8 @@
 import React from 'react';
-import './Plans.css';
-import { CHROME_STORE_URL } from '../../utils/constants';
-import { PlanCard } from './PlanCard';
+import PlanCard from './PlanCard';
+import { CHROME_STORE_URL } from '../utils/constants';
 
-export const Plans = ({ user, onSignIn, generatePaymentLink }) => {
+const Plans = ({ user, onSignIn, generatePaymentLink }) => {
   const freePlanFeatures = [
     '10 comments per month',
     'Unlimited regenerations',
@@ -24,11 +23,15 @@ export const Plans = ({ user, onSignIn, generatePaymentLink }) => {
   const highlightFree = false;
 
   return (
-    <section id="plans" className="plans">
-      <div className="container">
-        <div className="plans-title">Your Growth Hacker in your pocket for 1€ a day</div>
-        <div className="plans-subtitle">Pro = only €1/day. One comment a day can change everything.</div>
-        <div className="plans-cards-row">
+    <section id="plans" className="py-20 px-4 md:px-8 bg-slate-50">
+      <div className="container mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Your Growth Hacker in your pocket for 1€ a day</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Pro = only €1/day. One comment a day can change everything.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <PlanCard
             title="Free"
             price={0}
@@ -57,3 +60,5 @@ export const Plans = ({ user, onSignIn, generatePaymentLink }) => {
     </section>
   );
 };
+
+export default Plans; 

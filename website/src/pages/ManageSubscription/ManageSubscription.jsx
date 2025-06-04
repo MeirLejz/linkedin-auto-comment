@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../services';
-import { Header } from '../../components/Header';
+import Header from '../../components/Header';
 import './ManageSubscription.css';
 
 const ManageSubscription = () => {
