@@ -116,6 +116,7 @@ const ManageSubscription = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
