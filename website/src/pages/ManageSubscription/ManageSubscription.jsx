@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../services';
 import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 import './ManageSubscription.css';
 
 const ManageSubscription = () => {
