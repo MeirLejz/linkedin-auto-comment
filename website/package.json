@@ -1,33 +1,20 @@
 {
-  "name": "website",
-  "version": "1.0.0",
-  "main": "index.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.10",
+    "autoprefixer": "^10.4.21",
+    "lucide-react": "^0.513.0",
+    "postcss": "^8.5.4",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.2",
+    "react-scripts": "^5.0.1",
+    "tailwindcss": "^3.4.17",
+    "tailwindcss-animate": "^1.0.7"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "purgecss": "purgecss --config purgecss.config.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.4",
-    "@tailwindcss/postcss": "^4.1.8",
-    "express": "^5.1.0",
-    "lucide-react": "^0.512.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.0"
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.4",
-    "purgecss": "^7.0.2",
-    "react-scripts": "^5.0.1",
-    "tailwindcss": "^4.1.8"
+    "eject": "react-scripts eject"
   },
   "browserslist": {
     "production": [
