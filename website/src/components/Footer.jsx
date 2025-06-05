@@ -35,6 +35,14 @@ const Footer = () => {
               <li><a href="#features" className="text-muted-foreground hover:text-purple-600 transition-colors">Features</a></li>
               <li><a href="#plans" className="text-muted-foreground hover:text-purple-600 transition-colors">Pricing</a></li>
               <li><a href={CHROME_STORE_URL} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-purple-600 transition-colors">Chrome Extension</a></li>
+              <li>
+                <a
+                  href={ROUTES.MANAGE_SUBSCRIPTION}
+                  className="text-muted-foreground hover:text-purple-600 transition-colors"
+                >
+                  Manage Subscription
+                </a>
+              </li>
             </ul>
           </div>
           {/* Legal */}
