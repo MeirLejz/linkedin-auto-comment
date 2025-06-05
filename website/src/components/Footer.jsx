@@ -1,8 +1,14 @@
 import React from 'react';
 import { LINKEDIN_URL, CHROME_STORE_URL, PRIVACY_POLICY_URL, WHATSAPP_NUMBER, ROUTES } from '../utils/constants';
 import { Linkedin } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const Footer = () => {
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+  const featuresHref = isHome ? '#features' : '/#features';
+  const plansHref = isHome ? '#plans' : '/#plans';
+
   return (
     <footer className="bg-gray-50 pt-16 pb-8">
       <div className="container mx-auto px-4 md:px-8">
@@ -32,8 +38,8 @@ const Footer = () => {
           <div>
             <h3 className="font-bold mb-4">Product</h3>
             <ul className="space-y-3">
-              <li><a href="#features" className="text-muted-foreground hover:text-purple-600 transition-colors">Features</a></li>
-              <li><a href="#plans" className="text-muted-foreground hover:text-purple-600 transition-colors">Pricing</a></li>
+              <li><a href={featuresHref} className="text-muted-foreground hover:text-purple-600 transition-colors">Features</a></li>
+              <li><a href={plansHref} className="text-muted-foreground hover:text-purple-600 transition-colors">Pricing</a></li>
               <li><a href={CHROME_STORE_URL} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-purple-600 transition-colors">Chrome Extension</a></li>
               <li>
                 <a
