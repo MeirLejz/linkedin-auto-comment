@@ -22,6 +22,9 @@ const PLAN_TYPES = {
   BASIC: 'basic'
 };
 
+// Free plan monthly request limit
+const FREE_PLAN_MONTHLY_REQUEST_LIMIT = 10;
+
 module.exports = {
   PAYPRO_SECRET_KEY,
   REACT_APP_TEST_MODE,
@@ -32,5 +35,6 @@ module.exports = {
   PAYPRO_API_URL,
   PAYPRO_TERMINATE_URL,
   IPN_TYPES,
-  PLAN_TYPES
+  PLAN_TYPES,
+  FREE_PLAN_MONTHLY_REQUEST_LIMIT
 }; 

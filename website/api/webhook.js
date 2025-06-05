@@ -3,7 +3,8 @@ const { supabase } = require('./utils/supabaseClient');
 const { calculateWebhookHash } = require('./utils/hashUtils');
 const { 
   IPN_TYPES,
-  PLAN_TYPES
+  PLAN_TYPES,
+  FREE_PLAN_MONTHLY_REQUEST_LIMIT
 } = require('./utils/constants');
 
 const app = express();
@@ -72,12 +73,16 @@ app.post('/api/webhook', async (req, res) => {
       return res.status(400).send('Invalid or missing SUBSCRIPTION_ID');
     }
 
+    const now = new Date().toISOString();
+
     const { error } = await supabase
       .from('app_users')
       .update({
         plan_type: PLAN_TYPES.FREE,
         subscription_id: null,
-        last_renewal_date: null
+        last_renewal_date: now,
+        start_date: now,
+        remaining_user_requests: FREE_PLAN_MONTHLY_REQUEST_LIMIT
       })
       .eq('subscription_id', subscriptionId);
 
