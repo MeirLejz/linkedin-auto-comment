@@ -1,5 +1,5 @@
 import React from 'react';
-import { LINKEDIN_URL, CHROME_STORE_URL, PRIVACY_POLICY_URL, WHATSAPP_NUMBER } from '../utils/constants';
+import { LINKEDIN_URL, CHROME_STORE_URL, PRIVACY_POLICY_URL, WHATSAPP_NUMBER, ROUTES } from '../utils/constants';
 import { Linkedin } from 'lucide-react';
 
 const Footer = () => {
