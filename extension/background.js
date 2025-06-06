@@ -37,172 +37,133 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 // Handler functions for different message types
 // =========================================================================
 function handleStartAuthFlow(request, sender, sendResponse) {
-  startAuthFlow()
-    .then(() => sendResponse({ success: true }))
-    .catch(error => sendResponse({ success: false, error: error.message }));
-}
-
-function handleCheckAuthStatus(request, sender, sendResponse) {
   (async () => {
-    const authenticated = await isAuthenticated();
-    const user = authenticated ? await getCurrentUser() : null;
-    console.log("User:", user);
-    console.log("Authenticated:", authenticated);
-    sendResponse({ 
-      isAuthenticated: authenticated,
-      email: user?.email
-    });
-  })();
-}
-
-function handleSignOut(request, sender, sendResponse) {
-  signOutUser()
-    .then(result => sendResponse(result))
-    .catch(error => sendResponse({ success: false, error: error.message }));
-}
-
-function handleGenerateComment(request, sender, sendResponse) {
-  ensureAuthenticated(async () => {
-    // Get current user information
-    const user = await getCurrentUser();
-    if (!user || !user.id) {
-      sendResponse({ 
-        success: false, 
-        error: "User information could not be retrieved." 
-      });
-      return;
-    }
-
-    // Check if the user has remaining requests
-    const { data, error } = await supabase.rpc('use_request', {
-      user_uuid: user.id
-    });
-
-    if (error || !data) {
-      sendResponse({ 
-        success: false, 
-        error: "No remaining requests. Please upgrade your plan or try again later.",
-        code: "NO_CREDITS"
-      });
-      return;
-    }
-
-    // Proceed with comment generation
-    console.log("Generate comment request received");
-    streamComment(request.postContent, sender.tab.id, sendResponse);
-  }).catch(error => {
-    sendResponse({ 
-      success: false, 
-      error: error.message || "Authentication failed. Please sign in again." 
-    });
-  });
-}
-
-function handleGetRequestCount(request, sender, sendResponse) {
-  getUserRequestCount()
-    .then(count => sendResponse({ success: true, count: count }))
-    .catch(error => sendResponse({ success: false, error: error.message }));
-}
-
-function handleGetPlanType(request, sender, sendResponse) {
-  getUserPlanType()
-    .then(planType => sendResponse({ success: true, planType: planType }))
-    .catch(error => sendResponse({ success: false, error: error.message }));
-}
-
-
-
-// =========================================================================
-// Implementation functions
-// =========================================================================
-
-// Function to handle the OAuth authentication flow
-function startAuthFlow() {
-  return new Promise(async (resolve, reject) => {
     try {
-      // Ensure supabase is initialized
-      if (!supabase) {
-        supabase = await initSupabase();
-      }
-      
       const manifest = chrome.runtime.getManifest();
-      
       const url = new URL('https://accounts.google.com/o/oauth2/auth');
       url.searchParams.set('client_id', manifest.oauth2.client_id);
       url.searchParams.set('response_type', 'id_token');
       url.searchParams.set('access_type', 'offline');
       url.searchParams.set('redirect_uri', `https://${chrome.runtime.id}.chromiumapp.org`);
       url.searchParams.set('scope', manifest.oauth2.scopes.join(' '));
-      
-      console.log('Auth URL:', url.href); // Debugging
-      console.log("Extension ID:", chrome.runtime.id);
-    
-      chrome.identity.launchWebAuthFlow(
-        {
-          url: url.href,
-          interactive: true,
-        },
-        async (redirectedTo) => {
-          if (chrome.runtime.lastError) {
-            // Auth was not successful
-            console.error('Authentication failed:', chrome.runtime.lastError.message);
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            try {
-              // Auth was successful, extract the ID token from the redirectedTo URL
-              const url = new URL(redirectedTo);
-              const params = new URLSearchParams(url.hash.replace('#', ''));
-
-              // Assuming you have the user object from the sign-in process
-              const { user, error } = await supabase.auth.signInWithIdToken({
-                provider: 'google',
-                token: params.get('id_token'),
-              });
-
-              // Check for errors
-              if (error) {
-                console.error('Sign-in error:', error);
-              } else {
-                console.log('User signed in:', user);
-
-                // Get the current session
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-                if (sessionError) {
-                  console.error('Error fetching session:', sessionError);
-                } else {
-                  console.log('Current session:', session);
-
-                  // Check if the user is authenticated
-                  if (session) {
-                    console.log('User is authenticated:', session.user);
-                    console.log('User ID:', session.user.id);
-                    console.log('User Email:', session.user.email);
-                    // You can also check other session properties if needed
-                    await storeUserSession(session);
-                    resolve({ success: true });
-                  } else {
-                    console.log('User is not authenticated');
-                  }
-                }
-              }
-              if (error) {
-                console.error('Supabase authentication error:', error);
-                reject(error);
-              }
-            } catch (error) {
-              console.error('Error processing auth response:', error);
-              reject(error);
-            }
-          }
+      url.searchParams.set('prompt', 'consent');
+      chrome.identity.launchWebAuthFlow({ url: url.href, interactive: true }, async (redirectedTo) => {
+        if (chrome.runtime.lastError) {
+          sendResponse({ success: false, error: chrome.runtime.lastError.message });
+          return;
         }
-      );
-    } catch (error) {
-      console.error('Error starting auth flow:', error);
-      reject(error);
+        try {
+          const url = new URL(redirectedTo);
+          const params = new URLSearchParams(url.hash.replace('#', ''));
+          const id_token = params.get('id_token');
+          if (!id_token) throw new Error('No ID token returned from Google');
+          // Authenticate with Supabase
+          const supabaseSession = await sessionManager.signInSupabaseWithGoogleIdToken(id_token);
+          const session = {
+            supabase: {
+              access_token: supabaseSession.access_token,
+              refresh_token: supabaseSession.refresh_token,
+              expires_at: supabaseSession.expires_at,
+              user: {
+                id: supabaseSession.user.id,
+                email: supabaseSession.user.email,
+              },
+            },
+          };
+          await sessionManager.saveSession(session);
+          supabase.auth.setSession({
+            access_token: session.supabase.access_token,
+            refresh_token: session.supabase.refresh_token,
+          });
+          sendResponse({ success: true });
+        } catch (e) {
+          sendResponse({ success: false, error: e.message });
+        }
+      });
+    } catch (e) {
+      sendResponse({ success: false, error: e.message });
     }
-  });
+  })();
+  return true;
 }
+
+function handleCheckAuthStatus(request, sender, sendResponse) {
+  (async () => {
+    try {
+      const session = await sessionManager.loadSession();
+      const authenticated = !!(session && session.supabase && session.supabase.user && session.supabase.access_token);
+      sendResponse({
+        isAuthenticated: authenticated,
+        email: session?.supabase?.user?.email || null,
+      });
+    } catch (e) {
+      sendResponse({ isAuthenticated: false, error: e.message });
+    }
+  })();
+  return true;
+}
+
+function handleSignOut(request, sender, sendResponse) {
+  (async () => {
+    await sessionManager.signOut();
+    sendResponse({ success: true });
+  })();
+  return true;
+}
+
+function handleGenerateComment(request, sender, sendResponse) {
+  withAuthenticatedSession(async (session) => {
+    // Check if user has remaining requests
+    const { data, error } = await supabase.rpc('use_request', {
+      user_uuid: session.supabase.user.id
+    });
+    if (error || !data) {
+      sendResponse({
+        success: false,
+        error: 'No remaining requests. Please upgrade your plan or try again later.',
+        code: 'NO_CREDITS'
+      });
+      return;
+    }
+    // Proceed with comment generation
+    streamComment(request.postContent, sender.tab.id, sendResponse);
+  }, sendResponse).catch((e) => {
+    // Error already sent
+  });
+  return true;
+}
+
+function handleGetRequestCount(request, sender, sendResponse) {
+  withAuthenticatedSession(async (session) => {
+    const { data, error } = await supabase.rpc('get_user_remaining_requests', {
+      p_user_id: session.supabase.user.id
+    });
+    if (error) {
+      sendResponse({ success: false, error: error.message });
+      return;
+    }
+    sendResponse({ success: true, count: data });
+  }, sendResponse).catch(() => {});
+  return true;
+}
+
+function handleGetPlanType(request, sender, sendResponse) {
+  withAuthenticatedSession(async (session) => {
+    const { data, error } = await supabase.rpc('get_user_plan_type', {
+      p_user_id: session.supabase.user.id
+    });
+    if (error) {
+      sendResponse({ success: false, error: error.message });
+      return;
+    }
+    sendResponse({ success: true, planType: data });
+  }, sendResponse).catch(() => {});
+  return true;
+}
+
+// =========================================================================
+// Implementation functions
+// =========================================================================
 
 // Function to stream a comment from the backend API
 async function streamComment(postContent, tabId, sendResponse) {
@@ -303,164 +264,129 @@ async function streamComment(postContent, tabId, sendResponse) {
   }
 }
 
-// Check if user is authenticated and refresh session if needed
-async function isAuthenticated() {
-  try {
-    const data = await chrome.storage.local.get('userSession');
-    if (!data.userSession) {
-      console.warn('No user session found');
-      return false;
-    }
-    
-    // Check if session is expired
-    const expiresAt = data.userSession.expires_at;
-    const expiryDate = new Date(expiresAt * 1000);
-    const currentDate = new Date();
-    
-    console.log(`Session expiry check - Expires: ${expiryDate.toISOString()}, Current: ${currentDate.toISOString()}, Diff: ${(expiryDate - currentDate) / 1000 / 60} minutes`);
-    
-    if (expiresAt && expiryDate < currentDate) {
-      console.log('Session expired, attempting refresh');
-      // Try to refresh the token
-      const refreshed = await refreshToken(data.userSession.refresh_token);
-      console.log('Token refresh result:', refreshed);
-      return refreshed;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error checking authentication:', error);
-    return false;
+// =========================
+// SessionManager Class (Supabase-only)
+// =========================
+class SessionManager {
+  constructor() {
+    this.session = null; // in-memory cache
+    this.SAFE_EXPIRY_WINDOW = 60; // seconds
   }
-}
 
-// Refresh the access token using the refresh token
-async function refreshToken(refreshToken) {
-  try {
-    if (!refreshToken) {
-      console.log('No refresh token available');
-      return false;
-    }
-    
-    // Call Supabase to refresh the token
-    const { data, error } = await supabase.auth.refreshSession({
-      refresh_token: refreshToken
-    });
-    
-    if (error) {
-      console.error('Token refresh failed:', error.message);
-      return false;
-    }
-    
-    if (data && data.session) {
-      // Store the new session
-      await storeUserSession(data.session);
-      console.log('Token refreshed successfully');
-      return true;
-    }
-    
-    return false;
-  } catch (error) {
-    console.error('Error refreshing token:', error);
-    return false;
+  async loadSession() {
+    if (this.session) return this.session;
+    const { userSession } = await chrome.storage.local.get('userSession');
+    this.session = userSession || null;
+    return this.session;
   }
-}
 
-// Store user session data (updated to handle Supabase session format correctly)
-async function storeUserSession(session) {
-  await chrome.storage.local.set({ 
-    userSession: {
-      access_token: session.access_token,
-      refresh_token: session.refresh_token,
-      user: {
-        id: session.user.id,
-        email: session.user.email
-      },
-      expires_at: session.expires_at
-    }
-  });
-  console.log('User session stored');
-}
-
-// Get current user data
-async function getCurrentUser() {
-  try {
-    const data = await chrome.storage.local.get('userSession');
-    return data.userSession?.user || null;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
+  async saveSession(session) {
+    this.session = session;
+    await chrome.storage.local.set({ userSession: session });
   }
-}
 
-// Sign out user
-async function signOutUser() {
-  try {
-    // Sign out from Supabase
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    
-    // Clear local storage
+  async clearSession() {
+    this.session = null;
     await chrome.storage.local.remove('userSession');
-    console.log('User signed out');
-    return { success: true };
-  } catch (error) {
-    console.error('Error signing out:', error);
-    return { success: false, error: error.message };
+  }
+
+  // Check if a token is expiring within SAFE_EXPIRY_WINDOW seconds
+  isExpiringSoon(expires_at) {
+    if (!expires_at) return true;
+    const now = Math.floor(Date.now() / 1000);
+    return (expires_at - now) < this.SAFE_EXPIRY_WINDOW;
+  }
+
+  // Supabase sign in with Google ID token (for initial login)
+  async signInSupabaseWithGoogleIdToken(id_token) {
+    const { user, error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: id_token,
+    });
+    if (error) throw new Error('Supabase signInWithIdToken failed: ' + error.message);
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw new Error('Supabase getSession failed: ' + sessionError.message);
+    if (!session) throw new Error('No Supabase session after sign-in');
+    return session;
+  }
+
+  // Supabase refresh
+  async refreshSupabaseSession(refresh_token) {
+    const { data, error } = await supabase.auth.refreshSession({ refresh_token });
+    if (error) throw new Error(error.message);
+    if (!data?.session) throw new Error('No Supabase session after refresh');
+    return data.session;
+  }
+
+  // Ensure Supabase token is fresh
+  async ensureFreshSession() {
+    let session = await this.loadSession();
+    if (!session || !session.supabase) throw new Error('No session found');
+    let updated = false;
+    // Supabase token
+    if (this.isExpiringSoon(session.supabase.expires_at)) {
+      try {
+        const newSupabase = await this.refreshSupabaseSession(session.supabase.refresh_token);
+        session.supabase = {
+          access_token: newSupabase.access_token,
+          refresh_token: newSupabase.refresh_token, // Always update to latest!
+          expires_at: newSupabase.expires_at,
+          user: {
+            id: newSupabase.user.id,
+            email: newSupabase.user.email,
+          },
+        };
+        updated = true;
+        console.log('[SessionManager] Refreshed Supabase session');
+      } catch (e) {
+        // If refresh fails (e.g., refresh_token_already_used), sign out
+        await this.signOut();
+        throw new Error('Session expired or invalid. Please sign in again. (' + e.message + ')');
+      }
+    }
+    if (updated) await this.saveSession(session);
+    // Always update supabase client
+    supabase.auth.setSession({
+      access_token: session.supabase.access_token,
+      refresh_token: session.supabase.refresh_token,
+    });
+    return session;
+  }
+
+  async signOut() {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      // ignore
+    }
+    await this.clearSession();
   }
 }
 
-// Utility function to ensure authentication
-async function ensureAuthenticated(action) {
-  const authenticated = await isAuthenticated();
-  if (!authenticated) {
-    // Get the stored session to extract refresh token
-    const data = await chrome.storage.local.get('userSession');
-    const refreshed = await refreshToken(data.userSession?.refresh_token);
-    if (!refreshed) {
-      throw new Error('Authentication failed. Please sign in again.');
+const sessionManager = new SessionManager();
+
+// =========================
+// Authenticated Call Wrapper
+// =========================
+async function withAuthenticatedSession(fn, sendResponse) {
+  try {
+    const session = await sessionManager.ensureFreshSession();
+    return await fn(session);
+  } catch (err) {
+    // On error, try once more if it's an auth error
+    if (err.message && (err.message.includes('token') || err.message.includes('session'))) {
+      try {
+        await sessionManager.ensureFreshSession();
+        return await fn(await sessionManager.loadSession());
+      } catch (err2) {
+        console.error('[Auth] Auth retry failed:', err2);
+        if (sendResponse) sendResponse({ success: false, error: err2.message });
+        throw err2;
+      }
+    } else {
+      console.error('[Auth] Error:', err);
+      if (sendResponse) sendResponse({ success: false, error: err.message });
+      throw err;
     }
   }
-  return action();
-}
-
-async function getUserRequestCount() {
-  return ensureAuthenticated(async () => {
-    const user = await getCurrentUser();
-    
-    const { data, error } = await supabase.rpc('get_user_remaining_requests', {
-      p_user_id: user.id
-    });
-    
-    if (error) {
-      console.error('Error fetching request count:', error);
-      return 0;
-    }
-    
-    return data;
-  });
-}
-
-async function getUserPlanType() {
-  return ensureAuthenticated(async () => {
-    const user = await getCurrentUser();
-    
-    console.log("Calling get_user_plan_type with User ID:", user.id);
-
-    const { data, error } = await supabase.rpc('get_user_plan_type', {
-      p_user_id: user.id
-    });
-    
-    if (error) {
-      console.error('Error fetching plan type:', error);
-      return null; // Return null if there's an error
-    }
-    
-    console.log("Plan type data:", data);
-    if (!data) {
-      console.warn('No plan type returned for User ID:', user.id);
-    }
-    
-    return data;
-  });
 }
