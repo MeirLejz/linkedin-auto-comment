@@ -1,5 +1,5 @@
 // URLs
-export const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/placeholder';
+export const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/ava-ai/oociehonanngbcampmpnoaoddafapbjg';
 export const REDIRECT_URL = 'https://linkedin-auto-comment.vercel.app/';
 export const LINKEDIN_URL = 'https://www.linkedin.com/company/avacom-ai/';
 export const PRIVACY_POLICY_URL = 'https://meirlejz.github.io/linkedin-comment-extension-privacy-policy.html';
