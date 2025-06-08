@@ -10676,6 +10676,7 @@ module.exports = function () {
 
 },{}],62:[function(require,module,exports){
 const supabase = require('./supabaseConfig.js');
+const { SessionManager, sessionManager } = require('./sessionManager.js');
 
 // Backend URL Configuration
 const DEV_URL = "http://localhost:5000";
@@ -10942,6 +10943,34 @@ async function streamComment(postContent, tabId, sendResponse) {
 }
 
 // =========================
+// Authenticated Call Wrapper
+// =========================
+async function withAuthenticatedSession(fn, sendResponse) {
+  try {
+    const session = await sessionManager.ensureFreshSession();
+    return await fn(session);
+  } catch (err) {
+    // On error, try once more if it's an auth error
+    if (err.message && (err.message.includes('token') || err.message.includes('session'))) {
+      try {
+        await sessionManager.ensureFreshSession();
+        return await fn(await sessionManager.loadSession());
+      } catch (err2) {
+        console.error('[Auth] Auth retry failed:', err2);
+        if (sendResponse) sendResponse({ success: false, error: err2.message });
+        throw err2;
+      }
+    } else {
+      console.error('[Auth] Error:', err);
+      if (sendResponse) sendResponse({ success: false, error: err.message });
+      throw err;
+    }
+  }
+}
+},{"./sessionManager.js":63,"./supabaseConfig.js":64}],63:[function(require,module,exports){
+const supabase = require('./supabaseConfig.js');
+
+// =========================
 // SessionManager Class (Supabase-only)
 // =========================
 class SessionManager {
@@ -11042,32 +11071,8 @@ class SessionManager {
 
 const sessionManager = new SessionManager();
 
-// =========================
-// Authenticated Call Wrapper
-// =========================
-async function withAuthenticatedSession(fn, sendResponse) {
-  try {
-    const session = await sessionManager.ensureFreshSession();
-    return await fn(session);
-  } catch (err) {
-    // On error, try once more if it's an auth error
-    if (err.message && (err.message.includes('token') || err.message.includes('session'))) {
-      try {
-        await sessionManager.ensureFreshSession();
-        return await fn(await sessionManager.loadSession());
-      } catch (err2) {
-        console.error('[Auth] Auth retry failed:', err2);
-        if (sendResponse) sendResponse({ success: false, error: err2.message });
-        throw err2;
-      }
-    } else {
-      console.error('[Auth] Error:', err);
-      if (sendResponse) sendResponse({ success: false, error: err.message });
-      throw err;
-    }
-  }
-}
-},{"./supabaseConfig.js":63}],63:[function(require,module,exports){
+module.exports = { SessionManager, sessionManager }; 
+},{"./supabaseConfig.js":64}],64:[function(require,module,exports){
 //import { createClient } from '@supabase/supabase-js';
 const { createClient } = require('@supabase/supabase-js');
 

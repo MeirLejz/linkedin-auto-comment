@@ -78,7 +78,7 @@ function injectCommentAssistantButton() {
       const assistantButton = document.createElement('button');
       assistantButton.className = 'linkedin-comment-assistant-btn artdeco-button artdeco-button--circle artdeco-button--muted artdeco-button--2 artdeco-button--tertiary';
       assistantButton.title = 'Generate AI Comment';
-      assistantButton.innerHTML = '<img src="' + chrome.runtime.getURL('button.png') + '" alt="AI" width="20" height="20">';
+      assistantButton.innerHTML = '<img src="' + chrome.runtime.getURL('../public/button.png') + '" alt="AI" width="20" height="20">';
       assistantButton.setAttribute('type', 'button');
       assistantButton.setAttribute('data-post-content', postContent);
             
