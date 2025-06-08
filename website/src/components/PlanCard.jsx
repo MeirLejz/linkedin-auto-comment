@@ -4,7 +4,7 @@ import { CheckCircle } from 'lucide-react';
 const PlanCard = ({ 
   title, 
   price, 
-  currency = '€',
+  currency = '$',
   description,
   features, 
   buttonText, 
@@ -28,7 +28,7 @@ const PlanCard = ({
       <div className="p-8">
         <h3 className="text-xl font-semibold mb-2">{title}</h3>
         <div className="mb-4">
-          <span className="text-3xl font-bold">{price}</span>
+          <span className="text-3xl font-bold">{currency}{price}</span>
           <span className="text-gray-500 ml-2">/ month</span>
         </div>
         <p className="text-muted-foreground mb-6">{description}</p>
