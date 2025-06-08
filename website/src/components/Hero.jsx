@@ -30,6 +30,8 @@ const Hero = () => {
             <div className="flex justify-center lg:justify-start mb-4">
               <a
                 href={CHROME_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center bg-primary hover:bg-primary/90 text-white font-semibold text-lg px-6 py-3 rounded-lg shadow-lg transition group"
               >
                 <Chrome className="mr-2 h-5 w-5" />

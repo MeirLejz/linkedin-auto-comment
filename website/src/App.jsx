@@ -11,6 +11,7 @@ import WhyCommentCard from './components/WhyCommentCard';
 import HowItWorksCard from './components/HowItWorksCard';
 import FeatureCard from './components/FeatureCard';
 import { Chrome, MessageSquare, Users, Zap, RefreshCw, Shield } from 'lucide-react';
+import { CHROME_STORE_URL } from './utils/constants';
 
 function App() {
   const { user, loading, error, handleSignIn, handleSignOut } = useAuth();
@@ -148,7 +149,9 @@ function App() {
             </p>
             <div className="flex justify-center">
               <a
-                href="https://chrome.google.com/webstore/detail/ava-ai-linkedin-comments/" // Update with your actual Chrome store URL if needed
+                href={CHROME_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-white text-purple-700 hover:bg-gray-100 font-semibold py-3 px-8 rounded-lg text-lg shadow transition"
               >
                 Get Started for Free

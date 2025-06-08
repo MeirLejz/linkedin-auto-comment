@@ -35,6 +35,8 @@ const PlanCard = ({
         {buttonLink ? (
           <a
             href={buttonLink}
+            target="_blank"
+            rel="noopener noreferrer"
             className={`w-full mb-8 block text-center px-4 py-2 rounded-lg font-semibold transition shadow ${
               highlighted ? 'bg-primary hover:bg-primary/90 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
             }`}

@@ -52,7 +52,7 @@ const Header = ({ user, onSignIn, onSignOut }) => {
                 Sign In with Google
               </button>
             )}
-            <a href={CHROME_STORE_URL} className="bg-primary hover:bg-primary/90 text-white shadow-md px-4 py-2 rounded font-medium transition-colors">
+            <a href={CHROME_STORE_URL} target="_blank" rel="noopener noreferrer" className="bg-primary hover:bg-primary/90 text-white shadow-md px-4 py-2 rounded font-medium transition-colors">
               Get Started Free
             </a>
           </div>
@@ -89,7 +89,7 @@ const Header = ({ user, onSignIn, onSignOut }) => {
                   Sign In with Google
                 </button>
               )}
-              <a href={CHROME_STORE_URL} className="w-full block bg-primary hover:bg-primary/90 text-white shadow-sm px-4 py-2 rounded font-medium text-center transition-colors">
+              <a href={CHROME_STORE_URL} target="_blank" rel="noopener noreferrer" className="w-full block bg-primary hover:bg-primary/90 text-white shadow-sm px-4 py-2 rounded font-medium text-center transition-colors">
                 Get Started Free
               </a>
             </div>
