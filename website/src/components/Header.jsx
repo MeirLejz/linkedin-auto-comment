@@ -5,6 +5,17 @@ import { Menu, X } from 'lucide-react';
 const Header = ({ user, onSignIn, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Extract first name from user object
+  const getFirstName = () => {
+    if (!user) return '';
+    // Try to get from user_metadata
+    const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
+    if (fullName) return fullName.split(' ')[0];
+    // Fallback to email prefix
+    if (user.email) return user.email.split('@')[0];
+    return '';
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-slate-200">
       <div className="container mx-auto px-4 md:px-8">
@@ -27,6 +38,11 @@ const Header = ({ user, onSignIn, onSignOut }) => {
           </nav>
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
+            {user && (
+              <span className="text-gray-700 font-medium mr-2">
+                Hello, {getFirstName()}
+              </span>
+            )}
             {user ? (
               <button onClick={onSignOut} className="text-gray-600 hover:text-primary transition-colors px-4 py-2 rounded font-medium">
                 Sign Out
@@ -59,6 +75,11 @@ const Header = ({ user, onSignIn, onSignOut }) => {
             <a href="#features" className="text-gray-600 hover:text-primary transition-colors py-2">Features</a>
             <a href="#plans" className="text-gray-600 hover:text-primary transition-colors py-2">Plans</a>
             <div className="pt-2 space-y-2">
+              {user && (
+                <span className="block text-gray-700 font-medium mb-2">
+                  Hello, {getFirstName()}
+                </span>
+              )}
               {user ? (
                 <button onClick={onSignOut} className="w-full text-gray-600 hover:text-primary transition-colors px-4 py-2 rounded font-medium">
                   Sign Out
