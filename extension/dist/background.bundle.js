@@ -10723,7 +10723,7 @@ function handleStartAuthFlow(request, sender, sendResponse) {
       url.searchParams.set('access_type', 'offline');
       url.searchParams.set('redirect_uri', `https://${chrome.runtime.id}.chromiumapp.org`);
       url.searchParams.set('scope', manifest.oauth2.scopes.join(' '));
-      url.searchParams.set('prompt', 'consent');
+      // url.searchParams.set('prompt', 'consent');
       chrome.identity.launchWebAuthFlow({ url: url.href, interactive: true }, async (redirectedTo) => {
         if (chrome.runtime.lastError) {
           sendResponse({ success: false, error: chrome.runtime.lastError.message });
