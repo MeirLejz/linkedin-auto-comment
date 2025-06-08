@@ -90,19 +90,9 @@ function getPlanInfo(retryCount = 0, maxRetries = 3) {
         displayRequestCount('free');
       }
     } else {
-      // Handle error case - attempt retry if under max retries
-      console.error("Invalid plan response:", planResponse, `Retry attempt: ${retryCount+1}/${maxRetries+1}`);
-      
-      if (retryCount < maxRetries) {
-        console.log(`Retrying getPlanInfo in ${(retryCount+1)*500}ms...`);
-        // Exponential backoff: increase wait time with each retry
-        setTimeout(() => getPlanInfo(retryCount + 1, maxRetries), (retryCount+1) * 500);
-      } else {
-        // After max retries, default to free plan
-        console.error("Max retries reached. Signing out.");
-        showState('not-signed-in');
-        handleSignOut();
-      }
+      console.error("Invalid plan response. Signing out.");
+      showState('not-signed-in');
+      handleSignOut();
     }
   });
 }

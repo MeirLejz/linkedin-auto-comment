@@ -68,6 +68,7 @@ function handleStartAuthFlow(request, sender, sendResponse) {
               user: {
                 id: supabaseSession.user.id,
                 email: supabaseSession.user.email,
+                name: supabaseSession.user.display_name,
               },
             },
           };
