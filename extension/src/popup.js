@@ -33,6 +33,22 @@ document.addEventListener('DOMContentLoaded', () => {
   checkAuthStatus();
 });
 
+// Extract first name from user info (email, name, or full_name)
+function getFirstNameFromResponse(response) {
+  if (!response) return '';
+  // Try to get from user_metadata (if present)
+  if (response.user_metadata) {
+    const fullName = response.user_metadata.full_name || response.user_metadata.name;
+    if (fullName) return fullName.split(' ')[0];
+  }
+  // Try to get from name/full_name directly
+  if (response.full_name) return response.full_name.split(' ')[0];
+  if (response.name) return response.name.split(' ')[0];
+  // Fallback to email prefix
+  if (response.email) return response.email.split('@')[0];
+  return '';
+}
+
 // Function to check authentication status
 function checkAuthStatus() {
   const statusElement = document.getElementById('status');
@@ -40,7 +56,8 @@ function checkAuthStatus() {
   chrome.runtime.sendMessage({ action: 'checkAuthStatus' }, (response) => {
     if (response && response.isAuthenticated) {
       // User is authenticated
-      statusElement.textContent = `Welcome, ${response.email || 'User'}!`;
+      const firstName = getFirstNameFromResponse(response);
+      statusElement.textContent = `Welcome, ${firstName || 'User'}!`;
       
       // Check the user's plan type
       getPlanInfo();
