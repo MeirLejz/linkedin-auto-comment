@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "LinkedIn Comment Assistant",
+    "name": "AVA AI",
     "version": "3.0",
     "description": "Your AI-powered LinkedIn comment assistant.",
     "permissions": ["identity", "storage"],
