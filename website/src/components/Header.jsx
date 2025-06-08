@@ -40,7 +40,7 @@ const Header = ({ user, onSignIn, onSignOut }) => {
           <div className="hidden md:flex items-center space-x-4">
             {user && (
               <span className="text-gray-700 font-medium mr-2">
-                Hello, {getFirstName()}
+                Welcome, {getFirstName()}!
               </span>
             )}
             {user ? (
