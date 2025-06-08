@@ -1,4 +1,4 @@
-import supabase from './supabaseConfig.js';
+const supabase = require('./supabaseConfig.js');
 
 // Backend URL Configuration
 const DEV_URL = "http://localhost:5000";

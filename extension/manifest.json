@@ -9,33 +9,28 @@
       "scopes": ["openid", "email", "profile"]
     },
     "background": {
-      "service_worker": "background.js",
-      "type": "module"
+      "service_worker": "dist/background.bundle.js"
     },
     "action": {
-      "default_popup": "popup.html",
-      "default_icon": "icon.png"
+      "default_popup": "public/popup.html",
+      "default_icon": "public/icon.png"
     },
     "icons": {
-      "16": "icon.png",
-      "48": "icon.png",
-      "128": "icon.png"
+      "16": "public/icon.png",
+      "48": "public/icon.png",
+      "128": "public/icon.png"
     },
     "content_scripts": [
       {
-        "css": ["styles.css"],
+        "css": ["public/styles.css"],
         "matches": ["*://*.linkedin.com/*"],
-        "js": ["contentScript.js"]
+        "js": ["src/contentScript.js"]
       }
     ],
     "web_accessible_resources": [
       {
-        "resources": ["button.png"],
+        "resources": ["public/button.png"],
         "matches": ["*://*.linkedin.com/*"]
-      },
-      {
-        "resources": ["auth.html"],
-        "matches": ["https://*.supabase.co/*"]
       }
     ],
     "content_security_policy": {

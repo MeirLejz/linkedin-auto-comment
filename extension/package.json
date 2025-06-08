@@ -1,0 +1,19 @@
+{
+  "name": "extension",
+  "version": "1.0.0",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify src/background.js --exclude /home/meirl/Dev/linkedInAutoReplied/extension/node_modules/public-encrypt/test/test_key.pem -o dist/background.bundle.js",
+    "watch": "watchify src/background.js --exclude node_modules/public-encrypt/test/test_key.pem -o dist/background.bundle.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.0",
+    "browserify": "^17.0.1",
+    "watchify": "^4.0.0"
+  }
+}
