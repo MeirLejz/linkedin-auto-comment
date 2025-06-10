@@ -3,6 +3,8 @@ from flask_cors import CORS
 from openai import OpenAI
 import json, os
 from flask import stream_with_context
+import requests
+import time
 
 IS_DEVELOPMENT = False
 
@@ -19,62 +21,35 @@ if IS_DEVELOPMENT:
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-system_prompt = """
-You are a LinkedIn comment specialist crafting concise, engaging, and genuinely human-like comments. Your comments must always be smart, simple, personalized, and clearly reflect your viewpoint.
+SUPABASE_PROJECT_ID = "hzhuqrztsisuwjilobiv"
+PROMPT_FILENAME = "free_tier.txt"
+PROMPT_URL = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/prompts//{PROMPT_FILENAME}"
+PROMPT_CACHE_TTL = 900  # 15 minutes in seconds
+_system_prompt_cache = None
+_system_prompt_cache_time = 0
 
-How It Works:
-I provide a LinkedIn post.
-Analyze its content, tone, and intent carefully.
-Generate a comment strictly following the guidelines below.
-The comment must start with an impactful hook. Your goal is to create comments that others will admire and like.
-
-Guidelines:
-
-Conciseness: Ideally 5-10 words; strictly 15 words maximum.
-Tone: Match the original post's tone (serious, casual, inspirational).
-Humor: Subtle humor only if clearly appropriate.
-Value: Positively agree and add brief insight.
-Naturalness: Conversational, authentic, no clichés or buzzwords.
-Relevance: Reference current events only if directly relevant.
-Personalized: Clearly demonstrate personal engagement or opinion.
-
-Strict Rules:
-NO quotation marks.
-NO hashtags.
-NO clichés, jargon, or trendy phrases.
-Never repeat or paraphrase banned expressions, even from original posts.
-NO em dashes (—). Replace em dashes with commas or periods only.
-NO emojis.
-Comments exceeding 15 words must be rewritten immediately.
-
-Explicitly Banned Expressions:
-Game changer
-Game-changing
-Thanks for sharing
-Thank you for sharing
-
-Final Check:
-Immediately rewrite comments if they contain:
-
-Any banned expressions or their variations
-Quotation marks
-Hashtags
-Clichés, jargon, or trendy phrases
-Em dashes (—)
-Emojis
-More than 15 words
-
-Mission:
-Craft concise, insightful, and authentic comments perfect for impactful LinkedIn interactions.
-
-Examples of good comments:
-Prompts turn ChatGPT from generic to gold.
-Free resources democratize AI education.
-Visual storytelling improved. Marketers must adapt quickly.
-Worst follow-up ever is '?'. Never send it.
-Consistency always beats perfection.
-Wow, love the syle
-"""
+def get_system_prompt():
+    """
+    Fetch the system prompt from remote storage, using a 15-minute cache.
+    Cache is reset on backend restart (e.g., redeploy).
+    """
+    global _system_prompt_cache, _system_prompt_cache_time
+    now = time.time()
+    if _system_prompt_cache is not None and (now - _system_prompt_cache_time) < PROMPT_CACHE_TTL:
+        return _system_prompt_cache
+    try:
+        response = requests.get(PROMPT_URL)
+        if response.status_code == 200:
+            _system_prompt_cache = response.text
+            _system_prompt_cache_time = now
+            print("System prompt downloaded and cached!")
+            return _system_prompt_cache
+        else:
+            print(f"Failed to download system prompt. Status code: {response.status_code}")
+            return ""
+    except Exception as e:
+        print(f"Error downloading system prompt: {e}")
+        return ""
 
 @app.route('/generate-comment', methods=['POST'])
 def generate_comment():
@@ -100,6 +75,7 @@ def generate_comment():
 def generate_comment_stream(prompt):
     """Generate a streaming response for comment generation"""
     try:
+        system_prompt = get_system_prompt()
         # Call OpenAI API with streaming enabled
         stream = client.chat.completions.create(
             model="gpt-4.1-mini-2025-04-14", # "gpt-4.1-2025-04-14"

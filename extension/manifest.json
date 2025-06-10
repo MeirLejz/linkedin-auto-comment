@@ -31,6 +31,10 @@
       {
         "resources": ["public/button.png"],
         "matches": ["*://*.linkedin.com/*"]
+      },
+      {
+        "resources": ["public/icon-pro.png"],
+        "matches": ["*://*.linkedin.com/*"]
       }
     ],
     "content_security_policy": {

@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const signInButton = document.getElementById('signInButton');
   const signOutButton = document.getElementById('signOutButton');
   const upgradeButton = document.getElementById('upgradeButton');
+  const logoLink = document.getElementById('logoLink');
+  const manageLink = document.getElementById('manageSubscriptionLink');
   
   // State containers
   const loadingState = document.getElementById('loading');
@@ -20,8 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add click event for upgrade button
     upgradeButton.addEventListener('click', () => {
-      // Open the upgrade page
-      chrome.tabs.create({ url: 'https://linkedin-auto-comment.vercel.app/' });
+      chrome.tabs.create({ url: WEBSITE_URL });
     });
   }
   
@@ -31,6 +32,16 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Check if user is authenticated
   checkAuthStatus();
+
+  if (logoLink) {
+    logoLink.addEventListener('click', () => {
+      chrome.tabs.create({ url: WEBSITE_URL });
+    });
+  }
+
+  if (manageLink) {
+    manageLink.setAttribute('href', MANAGE_SUBSCRIPTION_URL);
+  }
 });
 
 // Extract first name from user info (email, name, or full_name)
@@ -74,10 +85,20 @@ function getPlanInfo(retryCount = 0, maxRetries = 3) {
   chrome.runtime.sendMessage({ action: 'getPlanType' }, (planResponse) => {
     console.log("Plan response:", planResponse);
     
+    const logoImg = document.querySelector('.logo-container .logo');
     if (planResponse && planResponse.success && planResponse.planType) {
       // Convert plan type to lowercase for case-insensitive comparison
       const planType = planResponse.planType.toLowerCase();
       
+      // Set logo image based on plan
+      if (logoImg) {
+        if (planType === 'basic') {
+          logoImg.src = 'icon-pro.png';
+        } else {
+          logoImg.src = 'icon.png';
+        }
+      }
+
       console.log('planType:', planType);
 
       if (planType === 'basic') {
@@ -196,3 +217,6 @@ function handleSignOut() {
     }
   });
 }
+
+const WEBSITE_URL = 'https://linkedin-auto-comment.vercel.app/';
+const MANAGE_SUBSCRIPTION_URL = WEBSITE_URL + 'manage-subscription';

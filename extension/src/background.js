@@ -277,8 +277,10 @@ async function withAuthenticatedSession(fn, sendResponse) {
     // On error, try once more if it's an auth error
     if (err.message && (err.message.includes('token') || err.message.includes('session'))) {
       try {
-        await sessionManager.ensureFreshSession();
-        return await fn(await sessionManager.loadSession());
+        // We assume ensureFreshSession returns the session, so we use that.
+        // This makes the retry logic consistent with the initial attempt.
+        const refreshedSession = await sessionManager.ensureFreshSession();
+        return await fn(refreshedSession);
       } catch (err2) {
         console.error('[Auth] Auth retry failed:', err2);
         if (sendResponse) sendResponse({ success: false, error: err2.message });

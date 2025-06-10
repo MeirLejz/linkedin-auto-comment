@@ -7,7 +7,7 @@
 <body class="popup">
     <div class="container">
         <div class="header">
-            <div class="logo-container">
+            <div class="logo-container" id="logoLink" style="cursor: pointer;">
                 <img src="icon.png" alt="AVA AI Logo" class="logo">
                 <h1>AVA AI</h1>
             </div>
@@ -52,7 +52,6 @@
                     <span class="plan-badge">FREE PLAN</span>
                 </div>
                 <div class="plan-details">
-                    <div>Basic AI model</div>
                     <div class="request-count" id="free-request-count">Remaining comments: --</div>
                 </div>
             </div>
@@ -66,12 +65,11 @@
                     <span class="plan-badge">PRO PLAN</span>
                 </div>
                 <div class="plan-details">
-                    <div>Advanced AI model, unlimited comments</div>
                     <div class="request-count" id="basic-request-count">Unlimited comments</div>
                 </div>
             </div>
             <a
-              href="https://linkedin-auto-comment.vercel.app/manage-subscription"
+              href="#"
               target="_blank"
               id="manageSubscriptionLink"
               class="ava-ai-manage-link"

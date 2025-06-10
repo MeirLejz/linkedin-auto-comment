@@ -2,3 +2,4 @@
 venv/ 
 release/
 node_modules/
+misc/
