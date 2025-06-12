@@ -24,7 +24,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 SUPABASE_PROJECT_ID = "hzhuqrztsisuwjilobiv"
 PROMPT_FILENAME = "free_tier.txt"
 PROMPT_URL = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/prompts//{PROMPT_FILENAME}"
-PROMPT_CACHE_TTL = 900  # 15 minutes in seconds
+PROMPT_CACHE_TTL = 10 # 900  # 15 minutes in seconds
 _system_prompt_cache = None
 _system_prompt_cache_time = 0
 
