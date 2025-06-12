@@ -92,7 +92,7 @@ def generate_comment_stream(prompt):
         # Stream the response chunks
         for chunk in stream:
             if chunk.choices and chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content.replace('—', ',')
+                content = chunk.choices[0].delta.content.replace('—', ', ')
                 yield f"data: {json.dumps({'content': content})}\n\n"
                 
         # Send a completion message
