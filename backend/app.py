@@ -46,10 +46,10 @@ def get_system_prompt():
             return _system_prompt_cache
         else:
             print(f"Failed to download system prompt. Status code: {response.status_code}")
-            return ""
+            return _system_prompt_cache
     except Exception as e:
         print(f"Error downloading system prompt: {e}")
-        return ""
+        return _system_prompt_cache
 
 @app.route('/generate-comment', methods=['POST'])
 def generate_comment():
