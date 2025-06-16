@@ -5,15 +5,15 @@ import { CHROME_STORE_URL } from '../utils/constants';
 const Plans = ({ user, onSignIn, generatePaymentLink }) => {
   const freePlanFeatures = [
     '10 comments per month',
-    'Unlimited regenerations',
-    'Basic comment suggestions',
+    //'Unlimited regenerations',
+    //'Basic comment suggestions',
     'Chrome extension'
   ];
 
   const proPlanFeatures = [
     'Unlimited comments',
-    'Unlimited regenerations',
-    'Advanced comment suggestions',
+    //'Unlimited regenerations',
+    //'Advanced comment suggestions',
     'Priority support',
     'Chrome extension'
   ];
