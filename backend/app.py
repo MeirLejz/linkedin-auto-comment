@@ -78,11 +78,11 @@ def generate_comment_stream(prompt):
         system_prompt = get_system_prompt()
         # Call OpenAI API with streaming enabled
         stream = client.chat.completions.create(
-            model="gpt-4.1-mini-2025-04-14", # "gpt-4.1-2025-04-14"
             messages=[
                 {"role": "developer", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
+            model="gpt-4.1-mini-2025-04-14",
             max_tokens=2048,
             temperature=2.0,
             frequency_penalty=2.0,
