@@ -35,7 +35,7 @@ const Plans = ({ user, onSignIn, generatePaymentLink }) => {
           <PlanCard
             title="Free"
             price={0}
-            currency="€"
+            currency="$"
             description="Get started without a credit card"
             features={freePlanFeatures}
             buttonText="Start Free"
@@ -45,8 +45,8 @@ const Plans = ({ user, onSignIn, generatePaymentLink }) => {
           />
           <PlanCard
             title="Pro"
-            price={29.99}
-            currency="€"
+            price={19.99}
+            currency="$"
             description="For power users who need the best engagement tools"
             features={proPlanFeatures}
             buttonText={user ? "Get Pro Plan" : "Sign In to Upgrade"}
