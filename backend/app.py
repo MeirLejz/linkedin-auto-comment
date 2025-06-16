@@ -84,7 +84,7 @@ def generate_comment_stream(prompt):
             ],
             model="gpt-4.1-mini-2025-04-14",
             max_tokens=2048,
-            temperature=2.0,
+            temperature=1.0,
             top_p=1.0,
             stream=True,
         )
