@@ -267,3 +267,28 @@ body.popup .loading-text {
   text-decoration: underline;
   color: #555;
 }
+
+.ava-ai-warning {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin: 18px 0 18px 0;
+  text-align: center;
+  gap: 10px;
+}
+
+.ava-ai-warning-icon {
+  color: #FFA726;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.ava-ai-warning-text {
+  color: #FFA726;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 220px;
+  text-align: justify;
+}
