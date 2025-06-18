@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "main": "background.js",
   "scripts": {
-    "build": "browserify src/background.js --exclude /home/meirl/Dev/linkedInAutoReplied/extension/node_modules/public-encrypt/test/test_key.pem -o dist/background.bundle.js",
-    "watch": "watchify src/background.js --exclude node_modules/public-encrypt/test/test_key.pem -o dist/background.bundle.js",
+    "build:background": "browserify src/background.js -o dist/background.bundle.js",
+    "build:content": "browserify src/contentScript.js -o dist/contentScript.bundle.js",
+    "build": "npm run build:background && npm run build:content",
+    "watch:background": "watchify src/background.js -o dist/background.bundle.js",
+    "watch:content": "watchify src/contentScript.js -o dist/contentScript.bundle.js",
+    "watch": "npm run watch:background & npm run watch:content",
     "test": "jest"
   },
   "keywords": [],

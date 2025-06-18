@@ -1,5 +1,5 @@
-const supabase = require('./supabaseConfig.js');
-const { SessionManager, sessionManager } = require('./sessionManager.js');
+const supabase = require('./background/supabaseConfig.js');
+const { SessionManager, sessionManager } = require('./background/sessionManager.js');
 
 // Backend URL Configuration
 const DEV_URL = "http://localhost:5000";

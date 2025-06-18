@@ -1,4 +1,4 @@
-const { SessionManager } = require('./sessionManager');
+const { SessionManager } = require('../background/sessionManager');
 
 // Mock supabaseConfig
 jest.mock('./supabaseConfig', () => ({
@@ -62,15 +62,15 @@ describe('SessionManager', () => {
       expires_at: now + 3600,
       user: { id: 'uid', email: 'test@example.com' }
     };
-    require('./supabaseConfig').auth.refreshSession.mockResolvedValue({ data: { session: newSession } });
+    require('../background/supabaseConfig').auth.refreshSession.mockResolvedValue({ data: { session: newSession } });
 
     // Act
     const session = await sessionManager.ensureFreshSession();
 
     // Assert
     expect(session.supabase.access_token).toBe('new');
-    expect(require('./supabaseConfig').auth.refreshSession).toHaveBeenCalledWith({ refresh_token: 'refresh' });
-    expect(require('./supabaseConfig').auth.setSession).toHaveBeenCalledWith({
+    expect(require('../background/supabaseConfig').auth.refreshSession).toHaveBeenCalledWith({ refresh_token: 'refresh' });
+    expect(require('../background/supabaseConfig').auth.setSession).toHaveBeenCalledWith({
       access_token: 'new',
       refresh_token: 'refresh2',
     });
@@ -89,7 +89,7 @@ describe('SessionManager', () => {
 
     const session = await sessionManager.ensureFreshSession();
     expect(session.supabase.access_token).toBe('valid');
-    expect(require('./supabaseConfig').auth.refreshSession).not.toHaveBeenCalled();
+    expect(require('../background/supabaseConfig').auth.refreshSession).not.toHaveBeenCalled();
   });
 
   it('throws and signs out if refresh fails', async () => {
@@ -102,7 +102,7 @@ describe('SessionManager', () => {
       }
     };
     mockStorage.userSession = expiringSession;
-    require('./supabaseConfig').auth.refreshSession.mockRejectedValue(new Error('refresh_token invalid'));
+    require('../background/supabaseConfig').auth.refreshSession.mockRejectedValue(new Error('refresh_token invalid'));
     const signOutSpy = jest.spyOn(sessionManager, 'signOut').mockImplementation(async () => {});
     await expect(sessionManager.ensureFreshSession()).rejects.toThrow('Session expired or invalid. Please sign in again. (refresh_token invalid)');
     expect(signOutSpy).toHaveBeenCalled();

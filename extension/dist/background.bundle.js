@@ -10675,8 +10675,8 @@ module.exports = function () {
 };
 
 },{}],62:[function(require,module,exports){
-const supabase = require('./supabaseConfig.js');
-const { SessionManager, sessionManager } = require('./sessionManager.js');
+const supabase = require('./background/supabaseConfig.js');
+const { SessionManager, sessionManager } = require('./background/sessionManager.js');
 
 // Backend URL Configuration
 const DEV_URL = "http://localhost:5000";
@@ -10970,7 +10970,7 @@ async function withAuthenticatedSession(fn, sendResponse) {
     }
   }
 }
-},{"./sessionManager.js":63,"./supabaseConfig.js":64}],63:[function(require,module,exports){
+},{"./background/sessionManager.js":63,"./background/supabaseConfig.js":64}],63:[function(require,module,exports){
 const supabase = require('./supabaseConfig.js');
 
 // =========================

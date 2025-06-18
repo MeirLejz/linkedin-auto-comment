@@ -24,7 +24,7 @@
       {
         "css": ["public/styles.css"],
         "matches": ["*://*.linkedin.com/*"],
-        "js": ["src/contentScript.js"]
+        "js": ["dist/contentScript.bundle.js"]
       }
     ],
     "web_accessible_resources": [
