@@ -40,8 +40,88 @@ const LINKEDIN_SELECTORS = {
   // Input field selectors will be determined dynamically
   
   // Reply box selector (for exclusion)
-  REPLY_BOX: '.comments-comment-box--reply'
+  REPLY_BOX: '.comments-comment-box--reply',
+  
+  // Comment submit button selector
+  COMMENT_SUBMIT_BUTTON: '.comments-comment-box__submit-button--cr',
 };
+
+// --- AVA.AI Comment Rate Tracking Config ---
+const COMMENT_TIME_FRAMES = [
+  { label: "1min", seconds: 1 * 60, threshold: 2 },
+  { label: "24h", seconds: 24 * 60 * 60, threshold: 50 },
+  // Add more as needed
+];
+const COMMENT_TIMESTAMPS_KEY = 'ava_posted_comment_timestamps';
+
+// --- AVA.AI Extension Constants ---
+const ATTACH_SUBMIT_LISTENER_DELAY_MS = 500; // 0.5 seconds
+const ALERT_COOLDOWN_SECONDS = 5 * 60; // 5 minutes
+const LAST_ALERT_KEY = 'ava_last_rate_limit_alert';
+
+// --- Utility Functions for Comment Tracking ---
+
+// Get current time in seconds
+function nowSeconds() {
+  return Math.floor(Date.now() / 1000);
+}
+
+// Prune timestamps older than the largest time frame
+function pruneOldTimestamps(timestamps) {
+  const maxSeconds = Math.max(...COMMENT_TIME_FRAMES.map(tf => tf.seconds));
+  const cutoff = nowSeconds() - maxSeconds;
+  return timestamps.filter(ts => ts > cutoff);
+}
+
+// Record a new comment post (in seconds)
+function recordCommentPost(callback) {
+  const now = nowSeconds();
+  chrome.storage.local.get([COMMENT_TIMESTAMPS_KEY], (result) => {
+    let timestamps = result[COMMENT_TIMESTAMPS_KEY] || [];
+    timestamps = pruneOldTimestamps(timestamps);
+    timestamps.push(now);
+    chrome.storage.local.set({ [COMMENT_TIMESTAMPS_KEY]: timestamps }, () => {
+      if (callback) callback(timestamps);
+    });
+  });
+}
+
+// Get counts for all time frames
+function getCommentCountsForTimeFrames(callback) {
+  chrome.storage.local.get([COMMENT_TIMESTAMPS_KEY], (result) => {
+    const timestamps = result[COMMENT_TIMESTAMPS_KEY] || [];
+    const now = nowSeconds();
+    const counts = COMMENT_TIME_FRAMES.map(tf => {
+      const cutoff = now - tf.seconds;
+      return {
+        label: tf.label,
+        count: timestamps.filter(ts => ts > cutoff).length,
+        threshold: tf.threshold
+      };
+    });
+    callback(counts);
+  });
+}
+
+// Show AVA.AI-styled popup alert if any threshold is exceeded
+function showRateLimitPopup(exceededFrames, anchorElement) {
+  chrome.storage.local.get([LAST_ALERT_KEY], (result) => {
+    const lastAlert = result[LAST_ALERT_KEY] || 0;
+    const now = Math.floor(Date.now() / 1000);
+    if ((now - lastAlert) < ALERT_COOLDOWN_SECONDS) {
+      return; // Don't show alert if within cooldown
+    }
+    const body = exceededFrames.map(f =>
+      `You've been active! <b>${f.count}</b> comments in the last <b>${f.label}</b> (suggested max: ${f.threshold}).`
+    ).join('<br>') + '<br><b>Tip:</b> Engaging is great, but spreading your comments out can help you get more authentic responses and avoid being seen as spammy.';
+    showFloatingPopup({
+      anchorElement: anchorElement || document.body,
+      title: "Nice Engagement!",
+      body: body
+    });
+    chrome.storage.local.set({ [LAST_ALERT_KEY]: now });
+  });
+}
 
 // Inject the comment assistant button into LinkedIn's UI
 function injectCommentAssistantButton() {
@@ -221,6 +301,9 @@ function generateComment(buttonElement, commentSection) {
       Logger.error("Could not find input field for this button");
     }
     
+    // Store the commentSection globally for later use
+    window.currentCommentSection = commentSection;
+    
     // Request comment generation from background script
     chrome.runtime.sendMessage(
       {
@@ -378,6 +461,12 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     // Update the comment field with the current accumulated text
     // Use the stored field if available to ensure we're updating the correct field
     fillCommentField(message.comment, window.currentCommentField);
+    // If done, wait 2 seconds and then attach the submit listener
+    if (message.done === true && window.currentCommentSection) {
+      setTimeout(() => {
+        attachCommentSubmitListener(window.currentCommentSection);
+      }, ATTACH_SUBMIT_LISTENER_DELAY_MS);
+    }
   }
 });
 
@@ -445,6 +534,7 @@ function showFloatingPopup({ anchorElement, title, body, actionText, actionHref,
   document.body.appendChild(popup);
 
   // Position popup near anchorElement
+  anchorElement.offsetHeight; // Force reflow
   const rect = anchorElement.getBoundingClientRect();
   popup.style.position = 'fixed';
   popup.style.zIndex = 99999;
@@ -467,4 +557,27 @@ function showFloatingPopup({ anchorElement, title, body, actionText, actionHref,
     }
   });
   scheduleDismiss();
+}
+
+// Attach a click listener to the LinkedIn "Comment" button
+function attachCommentSubmitListener(commentSection) {
+  const submitButton = commentSection.querySelector(LINKEDIN_SELECTORS.COMMENT_SUBMIT_BUTTON);
+  if (!submitButton) {
+    Logger.warn('No comment submit button found to attach listener.');
+    return;
+  }
+  if (submitButton.hasAttribute('data-ava-listener')) return;
+  submitButton.addEventListener('click', () => {
+    recordCommentPost(() => {
+      getCommentCountsForTimeFrames((counts) => {
+        const exceeded = counts.filter(f => f.count >= f.threshold);
+        if (exceeded.length > 0) {
+          // Find the AVA.AI generate button in this comment section
+          const avaButton = commentSection.querySelector('.linkedin-comment-assistant-btn');
+          showRateLimitPopup(exceeded, avaButton);
+        }
+      });
+    });
+  });
+  submitButton.setAttribute('data-ava-listener', 'true');
 }
