@@ -9,7 +9,7 @@ export const PAYPRO_BASE_URL = 'https://store.payproglobal.com/checkout';
 
 
 // Product IDs
-export const PAYPRO_PRODUCT_ID = '112482';
+export const PAYPRO_PRODUCT_ID = '113938';
 
 // Routes
 export const ROUTES = {
